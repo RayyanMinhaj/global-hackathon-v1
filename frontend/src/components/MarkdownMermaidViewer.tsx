@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
-import type { ComponentProps } from 'react';
 
 // Types for configuration
 interface ColorTheme {
@@ -53,7 +51,7 @@ class MermaidErrorBoundary extends React.Component<
 }
 
 // Mermaid Diagram Component
-const MermaidDiagram: React.FC<{ chart: string; theme: ColorTheme }> = ({ chart, theme }) => {
+const MermaidDiagram: React.FC<{ chart: string; theme: Required<ColorTheme> }> = ({ chart, theme }) => {
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const [diagramId] = useState(() => `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [isRendering, setIsRendering] = useState(false);
@@ -146,11 +144,11 @@ const MermaidDiagram: React.FC<{ chart: string; theme: ColorTheme }> = ({ chart,
           <div 
             className="w-6 h-6 border-2 rounded-full animate-spin"
             style={{
-              borderColor: `${theme.primary || '#22D3EE'}30`,
-              borderTopColor: theme.primary || '#22D3EE'
+              borderColor: `${theme.primary}30`,
+              borderTopColor: theme.primary
             }}
           ></div>
-          <span className="ml-2" style={{ color: theme.text || '#9CA3AF' }}>
+          <span className="ml-2" style={{ color: theme.text }}>
             Rendering diagram...
           </span>
         </div>
@@ -167,9 +165,6 @@ const MermaidDiagram: React.FC<{ chart: string; theme: ColorTheme }> = ({ chart,
     </div>
   );
 };
-
-// Type definitions for React Markdown components
-type ReactMarkdownComponents = ComponentProps<typeof ReactMarkdown>['components'];
 
 // Main Component
 const MarkdownMermaidViewer: React.FC<MarkdownMermaidViewerProps> = ({ 
@@ -215,7 +210,8 @@ const MarkdownMermaidViewer: React.FC<MarkdownMermaidViewerProps> = ({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code: ({ className, children, ...props }: NonNullable<ReactMarkdownComponents>['code'] & {}) => {
+          code: (props) => {
+            const { className, children, ...rest } = props;
             const match = /language-(\w+)/.exec(className || '');
             const language = match?.[1];
             
@@ -231,174 +227,231 @@ const MarkdownMermaidViewer: React.FC<MarkdownMermaidViewerProps> = ({
             
             return (
               <code 
-                className={`${className} px-1 rounded`}
+                className={`${className || ''} px-1 rounded`}
                 style={{ 
                   backgroundColor: theme.code,
                   color: theme.secondary
                 }}
-                {...props}
+                {...rest}
               >
                 {children}
               </code>
             );
           },
-          pre: ({ children }: NonNullable<ReactMarkdownComponents>['pre'] & {}) => (
-            <pre 
-              className="p-4 rounded-lg overflow-x-auto"
-              style={{ backgroundColor: theme.code }}
-            >
-              {children}
-            </pre>
-          ),
-          h1: ({ children }: NonNullable<ReactMarkdownComponents>['h1'] & {}) => (
-            <h1 
-              className="text-3xl font-bold mb-4 pb-2 border-b"
-              style={{ 
-                color: '#fff',
-                borderColor: `${theme.primary}33`
-              }}
-            >
-              {children}
-            </h1>
-          ),
-          h2: ({ children }: NonNullable<ReactMarkdownComponents>['h2'] & {}) => (
-            <h2 
-              className="text-2xl font-bold mb-3 mt-6"
-              style={{ color: '#fff' }}
-            >
-              {children}
-            </h2>
-          ),
-          h3: ({ children }: NonNullable<ReactMarkdownComponents>['h3'] & {}) => (
-            <h3 
-              className="text-xl font-bold mb-2 mt-4"
-              style={{ color: theme.primary }}
-            >
-              {children}
-            </h3>
-          ),
-          h4: ({ children }: NonNullable<ReactMarkdownComponents>['h4'] & {}) => (
-            <h4 
-              className="text-lg font-semibold mb-2 mt-3"
-              style={{ color: theme.secondary }}
-            >
-              {children}
-            </h4>
-          ),
-          p: ({ children }: NonNullable<ReactMarkdownComponents>['p'] & {}) => (
-            <p 
-              className="mb-4 leading-relaxed"
-              style={{ color: theme.text }}
-            >
-              {children}
-            </p>
-          ),
-          ul: ({ children }: NonNullable<ReactMarkdownComponents>['ul'] & {}) => (
-            <ul className="mb-4 space-y-2">
-              {children}
-            </ul>
-          ),
-          ol: ({ children }: NonNullable<ReactMarkdownComponents>['ol'] & {}) => (
-            <ol className="mb-4 space-y-2 list-decimal list-inside">
-              {children}
-            </ol>
-          ),
-          li: ({ children }: NonNullable<ReactMarkdownComponents>['li'] & {}) => (
-            <li className="flex items-start">
-              <span 
-                className="w-1.5 h-1.5 rounded-full mt-2 mr-2 flex-shrink-0"
-                style={{ backgroundColor: theme.primary }}
-              ></span>
-              <span style={{ color: theme.text }}>{children}</span>
-            </li>
-          ),
-          strong: ({ children }: NonNullable<ReactMarkdownComponents>['strong'] & {}) => (
-            <strong 
-              className="font-semibold"
-              style={{ color: theme.secondary }}
-            >
-              {children}
-            </strong>
-          ),
-          em: ({ children }: NonNullable<ReactMarkdownComponents>['em'] & {}) => (
-            <em style={{ color: theme.secondary }}>
-              {children}
-            </em>
-          ),
-          blockquote: ({ children }: NonNullable<ReactMarkdownComponents>['blockquote'] & {}) => (
-            <blockquote 
-              className="border-l-4 pl-4 py-2 my-4 italic"
-              style={{ 
-                borderColor: theme.primary,
-                backgroundColor: `${theme.code}80`,
-                color: theme.text
-              }}
-            >
-              {children}
-            </blockquote>
-          ),
-          a: ({ children, href }: NonNullable<ReactMarkdownComponents>['a'] & {}) => (
-            <a 
-              href={href}
-              className="underline hover:no-underline transition-colors"
-              style={{ color: theme.accent }}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {children}
-            </a>
-          ),
-          table: ({ children }: NonNullable<ReactMarkdownComponents>['table'] & {}) => (
-            <div className="overflow-x-auto my-4">
-              <table 
-                className="w-full border-collapse rounded-lg"
-                style={{ border: `1px solid ${theme.border}` }}
+          pre: (props) => {
+            const { children } = props;
+            return (
+              <pre 
+                className="p-4 rounded-lg overflow-x-auto"
+                style={{ backgroundColor: theme.code }}
               >
                 {children}
-              </table>
-            </div>
-          ),
-          thead: ({ children }: NonNullable<ReactMarkdownComponents>['thead'] & {}) => (
-            <thead style={{ backgroundColor: `${theme.primary}20` }}>
-              {children}
-            </thead>
-          ),
-          tbody: ({ children }: NonNullable<ReactMarkdownComponents>['tbody'] & {}) => (
-            <tbody style={{ backgroundColor: `${theme.background}80` }}>
-              {children}
-            </tbody>
-          ),
-          tr: ({ children }: NonNullable<ReactMarkdownComponents>['tr'] & {}) => (
-            <tr 
-              className="transition-colors"
-              style={{ borderBottom: `1px solid ${theme.border}` }}
-            >
-              {children}
-            </tr>
-          ),
-          th: ({ children }: NonNullable<ReactMarkdownComponents>['th'] & {}) => (
-            <th 
-              className="px-4 py-2 text-left text-sm font-semibold"
-              style={{ 
-                border: `1px solid ${theme.border}`,
-                color: theme.primary,
-                backgroundColor: `${theme.primary}10`
-              }}
-            >
-              {children}
-            </th>
-          ),
-          td: ({ children }: NonNullable<ReactMarkdownComponents>['td'] & {}) => (
-            <td 
-              className="px-4 py-2 text-sm"
-              style={{ 
-                border: `1px solid ${theme.border}`,
-                color: theme.text
-              }}
-            >
-              {children}
-            </td>
-          ),
+              </pre>
+            );
+          },
+          h1: (props) => {
+            const { children } = props;
+            return (
+              <h1 
+                className="text-3xl font-bold mb-4 pb-2 border-b"
+                style={{ 
+                  color: '#fff',
+                  borderColor: `${theme.primary}33`
+                }}
+              >
+                {children}
+              </h1>
+            );
+          },
+          h2: (props) => {
+            const { children } = props;
+            return (
+              <h2 
+                className="text-2xl font-bold mb-3 mt-6"
+                style={{ color: '#fff' }}
+              >
+                {children}
+              </h2>
+            );
+          },
+          h3: (props) => {
+            const { children } = props;
+            return (
+              <h3 
+                className="text-xl font-bold mb-2 mt-4"
+                style={{ color: theme.primary }}
+              >
+                {children}
+              </h3>
+            );
+          },
+          h4: (props) => {
+            const { children } = props;
+            return (
+              <h4 
+                className="text-lg font-semibold mb-2 mt-3"
+                style={{ color: theme.secondary }}
+              >
+                {children}
+              </h4>
+            );
+          },
+          p: (props) => {
+            const { children } = props;
+            return (
+              <p 
+                className="mb-4 leading-relaxed"
+                style={{ color: theme.text }}
+              >
+                {children}
+              </p>
+            );
+          },
+          ul: (props) => {
+            const { children } = props;
+            return (
+              <ul className="mb-4 space-y-2">
+                {children}
+              </ul>
+            );
+          },
+          ol: (props) => {
+            const { children } = props;
+            return (
+              <ol className="mb-4 space-y-2 list-decimal list-inside">
+                {children}
+              </ol>
+            );
+          },
+          li: (props) => {
+            const { children } = props;
+            return (
+              <li className="flex items-start">
+                <span 
+                  className="w-1.5 h-1.5 rounded-full mt-2 mr-2 flex-shrink-0"
+                  style={{ backgroundColor: theme.primary }}
+                ></span>
+                <span style={{ color: theme.text }}>{children}</span>
+              </li>
+            );
+          },
+          strong: (props) => {
+            const { children } = props;
+            return (
+              <strong 
+                className="font-semibold"
+                style={{ color: theme.secondary }}
+              >
+                {children}
+              </strong>
+            );
+          },
+          em: (props) => {
+            const { children } = props;
+            return (
+              <em style={{ color: theme.secondary }}>
+                {children}
+              </em>
+            );
+          },
+          blockquote: (props) => {
+            const { children } = props;
+            return (
+              <blockquote 
+                className="border-l-4 pl-4 py-2 my-4 italic"
+                style={{ 
+                  borderColor: theme.primary,
+                  backgroundColor: `${theme.code}80`,
+                  color: theme.text
+                }}
+              >
+                {children}
+              </blockquote>
+            );
+          },
+          a: (props) => {
+            const { children, href } = props;
+            return (
+              <a 
+                href={href}
+                className="underline hover:no-underline transition-colors"
+                style={{ color: theme.accent }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {children}
+              </a>
+            );
+          },
+          table: (props) => {
+            const { children } = props;
+            return (
+              <div className="overflow-x-auto my-4">
+                <table 
+                  className="w-full border-collapse rounded-lg"
+                  style={{ border: `1px solid ${theme.border}` }}
+                >
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          thead: (props) => {
+            const { children } = props;
+            return (
+              <thead style={{ backgroundColor: `${theme.primary}20` }}>
+                {children}
+              </thead>
+            );
+          },
+          tbody: (props) => {
+            const { children } = props;
+            return (
+              <tbody style={{ backgroundColor: `${theme.background}80` }}>
+                {children}
+              </tbody>
+            );
+          },
+          tr: (props) => {
+            const { children } = props;
+            return (
+              <tr 
+                className="transition-colors"
+                style={{ borderBottom: `1px solid ${theme.border}` }}
+              >
+                {children}
+              </tr>
+            );
+          },
+          th: (props) => {
+            const { children } = props;
+            return (
+              <th 
+                className="px-4 py-2 text-left text-sm font-semibold"
+                style={{ 
+                  border: `1px solid ${theme.border}`,
+                  color: theme.primary,
+                  backgroundColor: `${theme.primary}10`
+                }}
+              >
+                {children}
+              </th>
+            );
+          },
+          td: (props) => {
+            const { children } = props;
+            return (
+              <td 
+                className="px-4 py-2 text-sm"
+                style={{ 
+                  border: `1px solid ${theme.border}`,
+                  color: theme.text
+                }}
+              >
+                {children}
+              </td>
+            );
+          },
           hr: () => (
             <hr 
               className="my-6"
