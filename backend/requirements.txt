@@ -29,7 +29,7 @@ waitress==2.1.2
 # PDF generation
 reportlab==4.0.4
 markdown2==2.4.10
-Pillow==9.5.0
+#Pillow==9.5.0
 
 # Mermaid diagram generation - Uses mmdc CLI tool
 # Install mmdc with: npm install -g @mermaid-js/mermaid-cli
