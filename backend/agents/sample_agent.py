@@ -25,7 +25,7 @@ class OutputType(BaseModel):
 erd_agent = Agent(
     'openai:gpt-4o',
     deps_type=TableDefinition,
-    return_type=OutputType,
+    result_type=OutputType,
     system_prompt=GENERATE_ERD_DIAGRAM_PROMPT,
 )
 
