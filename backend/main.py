@@ -9,6 +9,7 @@ from agents.sys_arch_agent import generate_system_architecture_sync
 from agents.dataflow_agent import generate_dataflow_sync
 from agents.sequence_agent import generate_sequence_sync
 from agents.palette_diagram import generate_palette_sync
+from agents.microservice_agent import generate_microservices_sync
 
 logger = logging.getLogger(__name__)
 
@@ -288,6 +289,42 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_palette endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for microservices architecture generation
+    @app.route('/api/generate_microservices', methods=['POST'])
+    def generate_microservices():
+        """Endpoint to generate microservices architecture diagram"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+
+            requirements = data.get('requirements', '')
+            scale = data.get('scale', 'medium')
+            consistency = data.get('consistency', 'eventual')
+            if not requirements:
+                return jsonify({
+                    'error': 'No requirements provided',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating microservices architecture for requirements length {len(requirements)}; scale={scale}; consistency={consistency}")
+            result = generate_microservices_sync(requirements, scale, consistency)
+
+            return jsonify({
+                'architecture_diagram': result.get('architecture_diagram'),
+                'service_summary': result.get('service_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_microservices endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'
