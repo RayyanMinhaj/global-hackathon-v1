@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
+import { config, getApiUrl } from '../config/environment';
 
 const About: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState<string>('Checking...');
   
   useEffect(() => {
-    // Test backend connection
-    fetch('http://127.0.0.1:5000/health')
+    // Test backend connection using environment-based URL
+    fetch(getApiUrl('/health'))
       .then(response => response.json())
       .then(data => {
         setBackendStatus(data.status === 'healthy' ? 'Connected ✅' : 'Error ❌');
@@ -29,11 +29,21 @@ const About: React.FC = () => {
         </section>
         
         <section>
+          <h2>Environment Information</h2>
+          <div className="env-info">
+            <p><strong>Environment:</strong> {config.environment.toUpperCase()}</p>
+            <p><strong>Backend URL:</strong> {config.backendUrl}</p>
+            <p><strong>Frontend URL:</strong> {config.frontendUrl}</p>
+            <p><strong>App Version:</strong> {config.appVersion}</p>
+          </div>
+        </section>
+        
+        <section>
           <h2>Backend Status</h2>
           <p>Backend Connection: <strong>{backendStatus}</strong></p>
           {backendStatus.includes('❌') && (
             <p className="error">
-              Make sure to start the Flask backend server: <code>python app.py</code>
+              Make sure to start the Flask backend server or check your environment configuration.
             </p>
           )}
         </section>
@@ -48,6 +58,7 @@ const About: React.FC = () => {
                 <li>TypeScript</li>
                 <li>React Router</li>
                 <li>Vite</li>
+                <li>Tailwind CSS</li>
               </ul>
             </div>
             <div className="tech-item">
@@ -57,6 +68,7 @@ const About: React.FC = () => {
                 <li>Python</li>
                 <li>Logging</li>
                 <li>CORS</li>
+                <li>Gunicorn</li>
               </ul>
             </div>
           </div>

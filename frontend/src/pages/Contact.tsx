@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getApiUrl } from '../config/environment';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const Contact: React.FC = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/echo', {
+      const response = await fetch(getApiUrl('/api/echo'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

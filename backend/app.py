@@ -16,8 +16,9 @@ def create_app(config_name=None):
     config_name = config_name or os.environ.get('FLASK_ENV', 'default')
     app.config.from_object(config[config_name])
     
-    # Initialize CORS
-    CORS(app, origins=app.config['CORS_ORIGINS'])
+    # Initialize CORS with dynamic origins
+    cors_origins = app.config['CORS_ORIGINS']
+    CORS(app, origins=cors_origins)
     
     # Configure basic logging
     logging.basicConfig(
