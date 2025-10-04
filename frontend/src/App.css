@@ -27,11 +27,54 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .nav-brand {
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.current-page {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-btn, .theme-toggle, .sidebar-toggle {
+  background: #646cff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-btn:hover, .theme-toggle:hover, .sidebar-toggle:hover {
+  background: #535bf2;
+}
+
+.sidebar-toggle {
+  background: transparent;
+  border: 1px solid #646cff;
+  font-size: 1.2rem;
 }
 
 .brand-link {
