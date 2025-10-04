@@ -1,0 +1,37 @@
+# Core Flask dependencies
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+
+# API and HTTP requests
+requests==2.31.0
+
+# Environment and configuration
+python-dotenv==1.0.0
+
+# Logging and monitoring
+structlog==23.1.0
+# Note: SQLite is used for LLM interaction logging (built into Python standard library)
+
+# Development dependencies
+pytest==7.4.2
+pytest-flask==1.2.0
+black==23.7.0
+flake8==6.0.0
+
+# Security
+cryptography==41.0.4
+
+# Production server
+gunicorn==21.2.0
+waitress==2.1.2
+
+# PDF generation
+reportlab==4.0.4
+markdown2==2.4.10
+Pillow==10.0.0
+
+# Mermaid diagram generation - Uses mmdc CLI tool
+# Install mmdc with: npm install -g @mermaid-js/mermaid-cli
+# SVG processing for vector diagrams
+cairosvg==2.7.1
