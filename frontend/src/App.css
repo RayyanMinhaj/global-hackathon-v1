@@ -486,3 +486,39 @@
 .navigation.light .current-page {
   color: #666;
 }
+
+/* ERD Viewer Styles */
+.erd-viewer {
+  border: 1px solid #374151;
+  border-radius: 8px;
+  margin-top: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.erd-viewer .prose {
+  max-width: none;
+}
+
+.erd-test {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.erd-test h2 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.erd-test p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.erd-test h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
