@@ -2,6 +2,7 @@ from pydantic_ai import Agent
 from pydantic import BaseModel
 import asyncio
 import os
+import json
 from config import Config
 
 # API key imported here
@@ -52,4 +53,6 @@ async def generate_erd_diagram(table_definitions: str) -> str:
         return f"Error generating ERD diagram: {str(e)}"
     
 def generate_erd_diagram_sync(table_definitions: list) -> str:
-    return asyncio.run(generate_erd_diagram(table_definitions))
+    # Convert the list to a formatted JSON string for better readability by the AI
+    table_definitions_str = json.dumps(table_definitions, indent=2)
+    return asyncio.run(generate_erd_diagram(table_definitions_str))
