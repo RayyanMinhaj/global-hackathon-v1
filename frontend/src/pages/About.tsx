@@ -68,7 +68,6 @@ const About: React.FC = () => {
                 <li>Python</li>
                 <li>Logging</li>
                 <li>CORS</li>
-                <li>Gunicorn</li>
               </ul>
             </div>
           </div>
