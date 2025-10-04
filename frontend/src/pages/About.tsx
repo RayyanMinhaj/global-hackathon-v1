@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
+import { useMessage } from '../hooks';
+
 const About: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState<string>('Checking...');
-
+  const [message, setMessage] = useMessage();
+  
   useEffect(() => {
     // Test backend connection
     fetch('http://127.0.0.1:5000/health')

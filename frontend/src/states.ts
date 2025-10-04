@@ -3,3 +3,4 @@ import { atom } from 'jotai'
 
 // Simple string atom
 export const messageAtom = atom<string>('Hello from Jotai!')
+export const newAtom = atom<string>('Hello from Jotai!')
