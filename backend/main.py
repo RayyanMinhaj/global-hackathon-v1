@@ -4,6 +4,7 @@ import os
 import logging
 from config import config
 from agents.sample_agent import generate_erd_diagram_sync
+from agents.sys_arch_agent import generate_system_architecture_sync
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +141,44 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_erd endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for system architecture diagram generation
+    @app.route('/api/generate_architecture', methods=['POST'])
+    def generate_architecture():
+        """Endpoint to generate system architecture diagram"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+                
+            requirements = data.get('requirements', '')
+            if not requirements:
+                return jsonify({
+                    'error': 'No requirements provided',
+                    'status': 'error'
+                }), 400
+
+            # Optional parameters
+            technology_stack = data.get('technology_stack', '')
+            deployment_type = data.get('deployment_type', 'web')
+
+            logger.info(f"Generating system architecture for: {requirements[:100]}...")
+            result = generate_system_architecture_sync(requirements, technology_stack, deployment_type)
+            
+            return jsonify({
+                'architecture_diagram': result['architecture_diagram'],
+                'component_summary': result['component_summary'],
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_architecture endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'
