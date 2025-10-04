@@ -6,6 +6,7 @@ from config import config
 from agents.sample_agent import generate_erd_diagram_sync
 from agents.sys_arch_agent import generate_system_architecture_sync
 from agents.dataflow_agent import generate_dataflow_sync
+from agents.sequence_agent import generate_sequence_sync
 
 logger = logging.getLogger(__name__)
 
@@ -215,6 +216,41 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_dataflow endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for sequence diagram generation
+    @app.route('/api/generate_sequence', methods=['POST'])
+    def generate_sequence():
+        """Endpoint to generate sequence diagram"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+
+            description = data.get('description', '')
+            actors = data.get('actors', '')
+            if not description:
+                return jsonify({
+                    'error': 'No description provided',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating sequence diagram for description length {len(description)}")
+            result = generate_sequence_sync(description, actors)
+
+            return jsonify({
+                'sequence_diagram': result.get('sequence_diagram'),
+                'participant_summary': result.get('participant_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_sequence endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'
