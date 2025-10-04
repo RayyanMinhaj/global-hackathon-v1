@@ -203,3 +203,43 @@ body{background:var(--bg);color:var(--text);font-family:Inter, system-ui, -apple
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
 }
+
+/* Override common Tailwind color utility classes used in JSX to match dark/glassy theme */
+.min-h-screen.bg-gradient-to-br.from-purple-50.via-pink-50.to-orange-50 {
+  background: transparent !important;
+}
+
+.text-gray-900 { color: var(--text) !important; }
+.text-gray-800 { color: var(--text) !important; }
+.text-gray-700 { color: var(--muted) !important; }
+.text-gray-600 { color: var(--muted) !important; }
+.text-gray-500 { color: rgba(255,255,255,0.45) !important; }
+
+.bg-white\/20 { background: var(--glass) !important; }
+.bg-white\/10 { background: var(--panel) !important; }
+.bg-white\/5 { background: rgba(255,255,255,0.02) !important; }
+.border-white\/30 { border-color: var(--border) !important; }
+.border-white\/10 { border-color: rgba(255,255,255,0.03) !important; }
+.bg-white\/30 { background: rgba(255,255,255,0.03) !important; }
+.bg-white\/20.backdrop-blur-lg { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)) !important; }
+
+.placeholder-gray-500::placeholder { color: var(--muted) !important; }
+
+/* Decorative colored circles -> toning down */
+.bg-purple-300\/20 { background: rgba(130,90,255,0.08) !important; }
+.bg-pink-300\/20 { background: rgba(255,115,155,0.06) !important; }
+.bg-orange-300\/20 { background: rgba(255,140,80,0.05) !important; }
+.bg-purple-200\/20 { background: rgba(130,90,255,0.04) !important; }
+
+/* Buttons that used gradients -> make them subtle */
+.bg-gradient-to-r.from-purple-600.via-pink-500.to-orange-500 { background: linear-gradient(90deg,var(--accent), rgba(255,122,182,0.9)) !important; color: white !important; }
+.bg-gradient-to-r.from-purple-600.via-pink-500.to-orange-500:hover { filter:brightness(1.02) !important; }
+
+/* Status colors adjustments */
+.text-yellow-500 { color: #fbbf24 !important; }
+.text-red-500 { color: #fb7185 !important; }
+.text-green-500 { color: #34d399 !important; }
+
+/* small helpers */
+.bg-white\/5.rounded-lg { background: rgba(255,255,255,0.02) !important; }
+
