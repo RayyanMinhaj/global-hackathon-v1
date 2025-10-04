@@ -28,7 +28,7 @@ export default function LandingPage() {
       }`}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-            MiddlWare
+            MiddlWare.
           </div>
           <div className="hidden md:flex gap-8 text-sm font-medium">
             <a href="#" className="hover:text-purple-600 transition-colors">Features</a>
@@ -49,21 +49,21 @@ export default function LandingPage() {
             MiddlWare.
           </div>
           <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
-            Fire your middlemen.
+            No Project Managers. No Business Analysts.
             <br />
             <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-              Ship smarter with MiddlWare
+              No Bullsh*t.
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-6 max-w-3xl mx-auto font-light">
-            MiddlWare takes raw input from you (ideas, notes, brain dumps) and instantly spits out SRS docs, SDS diagrams, and mockups that your devs can actually use.
+              Stop burning money on people who just make slides. MiddlWare takes raw input from you (ideas, notes, brain dumps) and instantly spits out SRS docs, SDS diagrams, and mockups that your devs can actually use.
           </p>
           <p className="text-md text-gray-600 mb-12 max-w-3xl mx-auto font-light">
-            No Project Managers, No Business Analysts, No BullSh*t. Stop burning money on people who just make slides.
+            Startups love us because they can’t afford corporate hierarchies. Big companies use us because cutting middlemen saves six figures.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/dashboard" className="group px-8 py-4 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-lg text-purple-700 font-semibold hover:bg-white/30 hover:border-white/50 transition-all duration-300 flex items-center gap-2 shadow-lg">
-              Try MiddlWare — Generate Docs
+              Try MiddlWare.
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
             <button className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300 backdrop-blur-lg">
@@ -82,7 +82,7 @@ export default function LandingPage() {
               <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent"> succeed</span>
             </h2>
             <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-              Powerful features designed to streamline your workflow and boost team productivity.
+              Say goodbye to endless approval chains.
             </p>
           </div>
           
@@ -91,9 +91,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-purple-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
                 <span className="text-purple-600 text-2xl">🎯</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Project Planning</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">Cut the Fluff</h3>
               <p className="text-gray-700">
-                Plan and organize your projects with intuitive tools that keep everyone aligned.
+                MiddlWare cuts the fluff so your product actually ships.
               </p>
             </div>
             
@@ -101,9 +101,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-pink-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
                 <span className="text-pink-500 text-2xl">👥</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Team Collaboration</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">Save the Dollars</h3>
               <p className="text-gray-700">
-                Collaborate seamlessly with real-time updates and integrated communication.
+                Stop paying for roles that exist just to talk. Start paying for results.
               </p>
             </div>
             
@@ -111,9 +111,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-orange-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
                 <span className="text-orange-500 text-2xl">📊</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Analytics & Insights</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">Get Sh*t Done.</h3>
               <p className="text-gray-700">
-                Track progress and make data-driven decisions with powerful analytics.
+                Stop paying humans to think when AI can do it better, faster, cheaper.
               </p>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function LandingPage() {
             Ready to transform your workflow?
           </h2>
           <p className="text-xl text-gray-700 mb-12">
-            Join thousands of teams already using FlowSync to achieve their goals.
+            Join thousands of teams already using MiddlWare to achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300">
