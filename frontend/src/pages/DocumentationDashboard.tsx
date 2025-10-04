@@ -6,114 +6,35 @@ const DocumentationDashboard: React.FC = () => {
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Mockup markdown content with mermaid diagram
-  const mockupContent = `# Software Requirements Specification (SRS)
 
-## 1. Introduction
-
-This document outlines the requirements for the **FlowSync Project Management System**, a comprehensive platform designed to streamline team collaboration and project tracking.
-
-### 1.1 Purpose
-To provide a unified solution for project planning, team collaboration, and progress tracking.
-
-### 1.2 Scope
-FlowSync will serve teams of all sizes, from startups to enterprise organizations.
-
-## 2. System Architecture
-
-\`\`\`mermaid
-graph TB
-    A[Frontend React App] --> B[API Gateway]
-    B --> C[Authentication Service]
-    B --> D[Project Management Service]
-    B --> E[Collaboration Service]
-    B --> F[Analytics Service]
-    
-    C --> G[(User Database)]
-    D --> H[(Project Database)]
-    E --> I[(Messages Database)]
-    F --> J[(Analytics Database)]
-    
-    K[Real-time Updates] --> E
-    L[File Storage] --> D
-\`\`\`
-
-## 3. Core Features
-
-### 3.1 Project Planning
-- **Task Management**: Create, assign, and track tasks
-- **Timeline Visualization**: Gantt charts and milestone tracking
-- **Resource Allocation**: Manage team capacity and workload
-
-### 3.2 Team Collaboration
-- **Real-time Chat**: Instant messaging within projects
-- **File Sharing**: Document upload and version control
-- **Comments & Reviews**: Collaborative feedback system
-
-### 3.3 Analytics & Reporting
-- **Progress Tracking**: Visual dashboards and metrics
-- **Performance Analytics**: Team productivity insights
-- **Custom Reports**: Exportable project summaries
-
-## 4. User Flow Diagram
-
-\`\`\`mermaid
-flowchart LR
-    A[User Login] --> B{New User?}
-    B -->|Yes| C[Onboarding]
-    B -->|No| D[Dashboard]
-    C --> D
-    D --> E[Select Project]
-    E --> F[Project Workspace]
-    F --> G[Create Tasks]
-    F --> H[Collaborate]
-    F --> I[View Analytics]
-\`\`\`
-
-## 5. Technical Requirements
-
-### 5.1 Frontend
-- **Framework**: React with TypeScript
-- **Styling**: Tailwind CSS with glassmorphism design
-- **State Management**: React hooks and context
-
-### 5.2 Backend
-- **Runtime**: Node.js
-- **Database**: PostgreSQL
-- **Authentication**: JWT tokens
-- **Real-time**: WebSocket connections
-
-## 6. Security Requirements
-
-> **Important**: All user data must be encrypted at rest and in transit.
-
-### Security Measures:
-1. **Authentication**: Multi-factor authentication
-2. **Authorization**: Role-based access control
-3. **Data Protection**: End-to-end encryption
-4. **Monitoring**: Real-time security alerts
-
-## 7. Performance Metrics
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| Page Load Time | < 2s | 1.3s |
-| API Response | < 500ms | 280ms |
-| Uptime | 99.9% | 99.95% |
-| Concurrent Users | 10,000+ | 5,000 |
-
----
-
-*This document will be updated as requirements evolve and new features are planned.*`;
 
   const handleGenerate = () => {
+    const API_URL = (import.meta.env && (import.meta.env.VITE_API_URL as string)) || 'http://localhost:5000';
+
     setIsGenerating(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      setGeneratedContent(mockupContent);
-      setIsGenerating(false);
-    }, 1500);
+
+    (async () => {
+      try {
+        const resp = await fetch(`${API_URL}/api/generate_srs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: inputText })
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || `Request failed with status ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        const content = data.srs_document || data.srs || data.document || '';
+        setGeneratedContent(content || 'No document returned from server.');
+      } catch (e: any) {
+        setGeneratedContent(`Error generating document: ${e?.message || e}`);
+      } finally {
+        setIsGenerating(false);
+      }
+    })();
   };
 
   return (
