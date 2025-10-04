@@ -17,8 +17,7 @@ def create_app(config_name=None):
     app.config.from_object(config[config_name])
     
     # Initialize CORS with dynamic origins
-    cors_origins = app.config['CORS_ORIGINS']
-    CORS(app, origins=cors_origins)
+    CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "https://global-hackathon-v1-production.up.railway.app", "https://desirable-gentleness-production.up.railway.app", "http://localhost:5000"])
     
     # Configure basic logging
     logging.basicConfig(
