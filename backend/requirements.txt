@@ -4,7 +4,7 @@ Flask-CORS==4.0.0
 
 
 # API and HTTP requests
-requests==2.31.0
+requests>=2.32.3
 
 # Environment and configuration
 python-dotenv==1.0.0
