@@ -5,6 +5,7 @@ import logging
 from config import config
 from agents.sample_agent import generate_erd_diagram_sync
 from agents.sys_arch_agent import generate_system_architecture_sync
+from agents.dataflow_agent import generate_dataflow_sync
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +180,41 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_architecture endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for dataflow diagram generation
+    @app.route('/api/generate_dataflow', methods=['POST'])
+    def generate_dataflow():
+        """Endpoint to generate dataflow diagram"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+
+            description = data.get('description', '')
+            components = data.get('components', '')
+            if not description:
+                return jsonify({
+                    'error': 'No description provided',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating dataflow diagram for description length {len(description)}")
+            result = generate_dataflow_sync(description, components)
+
+            return jsonify({
+                'dataflow_diagram': result.get('dataflow_diagram'),
+                'component_summary': result.get('component_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_dataflow endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'

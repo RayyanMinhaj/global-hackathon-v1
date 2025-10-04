@@ -1,0 +1,78 @@
+from pydantic_ai import Agent
+from pydantic import BaseModel
+import asyncio
+import os
+import json
+from config import Config
+
+# API key imported here
+os.environ['OPENAI_API_KEY'] = Config.OPENAI_API_KEY
+
+GENERATE_DATAFLOW_DIAGRAM_PROMPT = """
+You are an expert in generating dataflow diagrams from system component descriptions.
+Given a description of a system (components, data sources, sinks, and interactions), generate a clear Data Flow Diagram (DFD) in Mermaid syntax.
+
+The input will contain a description and optional component list. Produce a Mermaid diagram illustrating:
+1. All components (processes/services)
+2. External entities (users, third-party services)
+3. Data stores (databases, files)
+4. Data flows between components and entities
+5. Labels for important data flows and protocols where applicable
+
+Return only the Mermaid diagram code and a short JSON summary of components.
+"""
+
+class DataflowInput(BaseModel):
+	description: str
+	components: str = ""
+
+class DataflowOutput(BaseModel):
+	dataflow_diagram: str
+	component_summary: str
+
+dataflow_agent = Agent(
+	'openai:gpt-4o',
+	deps_type=DataflowInput,
+	result_type=DataflowOutput,
+	system_prompt=GENERATE_DATAFLOW_DIAGRAM_PROMPT,
+)
+
+async def generate_dataflow(description: str, components: str = "") -> dict:
+	try:
+		message = f"""
+		Generate a dataflow diagram for the following system description:
+
+		Description: {description}
+
+		Components: {components if components else 'Not specified - infer components from description'}
+
+		Please return a Mermaid dataflow diagram and a concise JSON summary of components.
+		"""
+
+		deps = DataflowInput(description=description, components=components)
+
+		result = await dataflow_agent.run(message, deps=deps)
+
+		return {
+			'dataflow_diagram': result.data.dataflow_diagram,
+			'component_summary': result.data.component_summary
+		}
+	except Exception as e:
+		print(f"Error generating dataflow diagram: {str(e)}")
+		return {
+			'dataflow_diagram': f"Error generating dataflow diagram: {str(e)}",
+			'component_summary': f"Error: {str(e)}"
+		}
+
+def generate_dataflow_sync(description: str, components: str = "") -> dict:
+	"""
+	Synchronous wrapper for generating dataflow diagrams
+
+	Args:
+		description: A textual description of the system and flows
+		components: Optional component list or hints
+
+	Returns:
+		dict: Contains 'dataflow_diagram' and 'component_summary'
+	"""
+	return asyncio.run(generate_dataflow(description, components))
