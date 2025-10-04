@@ -11,11 +11,22 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     FLASK_APP=app.py
 
 # Install system dependencies
+# Install system dependencies for Python packages like Pillow
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
         g++ \
-        && rm -rf /var/lib/apt/lists/*
+        libjpeg-dev \
+        zlib1g-dev \
+        libtiff5-dev \
+        libwebp-dev \
+        libfreetype6-dev \
+        liblcms2-dev \
+        libffi-dev \
+        libssl-dev \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # Copy requirements first for better caching
 COPY requirements.txt .
