@@ -1,12 +1,63 @@
 import React, { useState } from 'react';
 import { useMessage } from '../hooks';
 import { getApiUrl } from '../config/environment';
+import MarkdownMermaidExample from '../examples/MarkdownMermaidExample';
 
 const Home: React.FC = () => {
   const [message, setMessage] = useMessage();
   const [erdResponse, setErdResponse] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+
+  const testSampleDiagram = () => {
+    const sampleMarkdownWithMermaid = `# Sample ERD Diagram
+
+This is a sample Entity Relationship Diagram created with Mermaid:
+
+\`\`\`mermaid
+erDiagram
+    USERS {
+        int id PK
+        varchar username UK
+        varchar email UK
+        timestamp created_at
+    }
+    POSTS {
+        int id PK
+        int user_id FK
+        varchar title
+        text content
+        timestamp created_at
+    }
+    COMMENTS {
+        int id PK
+        int post_id FK
+        int user_id FK
+        text content
+        timestamp created_at
+    }
+    
+    USERS ||--o{ POSTS : "creates"
+    POSTS ||--o{ COMMENTS : "has"
+    USERS ||--o{ COMMENTS : "writes"
+\`\`\`
+
+## Features Demonstrated
+
+- **Primary Keys (PK)**: Unique identifiers for each table
+- **Foreign Keys (FK)**: References between tables
+- **Unique Keys (UK)**: Unique constraints
+- **Relationships**: One-to-many relationships between entities
+
+### Additional Notes
+
+This diagram shows a simple blog-like system with:
+1. Users who can create posts
+2. Posts that belong to users
+3. Comments that belong to both posts and users
+`;
+    setErdResponse(sampleMarkdownWithMermaid);
+  };
 
   const handleUpdateMessage = () => {
     setMessage(`Updated at ${new Date().toLocaleTimeString()}`);
@@ -104,36 +155,32 @@ const Home: React.FC = () => {
 
       <div className="erd-test">
         <h2>ERD Generation Test</h2>
-        <p>Test the backend ERD generation API with sample data:</p>
+        <p>Test the Mermaid diagram rendering with sample data:</p>
         
-        <button 
-          onClick={testErdGeneration} 
-          disabled={isLoading}
-          className="btn-primary"
-        >
-          {isLoading ? 'Generating ERD...' : 'Test ERD Generation'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <button 
+            onClick={testSampleDiagram}
+            className="btn-secondary"
+          >
+            Show Sample Diagram
+          </button>
+          
+          <button 
+            onClick={testErdGeneration} 
+            disabled={isLoading}
+            className="btn-primary"
+          >
+            {isLoading ? 'Generating ERD...' : 'Test Backend API'}
+          </button>
+        </div>
         
         {error && (
           <div style={{ color: 'red', marginTop: '10px' }}>
             <strong>Error:</strong> {error}
           </div>
         )}
-        
-        {erdResponse && (
-          <div style={{ marginTop: '20px' }}>
-            <h3>ERD Response:</h3>
-            <pre style={{ 
-              background: '#f5f5f5', 
-              padding: '10px', 
-              borderRadius: '5px',
-              overflow: 'auto',
-              maxHeight: '300px'
-            }}>
-              {erdResponse}
-            </pre>
-          </div>
-        )}
+
+       <MarkdownMermaidExample />
       </div>
     </div>
   );
