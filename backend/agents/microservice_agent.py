@@ -10,28 +10,26 @@ os.environ['OPENAI_API_KEY'] = Config.OPENAI_API_KEY
 GENERATE_MICROSERVICES_PROMPT = """
 You are an expert in designing microservices architectures. Given system requirements and optional constraints (scale, data consistency, protocols), generate a clear microservices architecture diagram in Mermaid syntax.
 
+IMPORTANT (formatting rules):
+- Return ONLY a valid Mermaid diagram string for the architecture — DO NOT include markdown fences (```), explanatory text, or any other commentary. The frontend will render the returned Mermaid string directly.
+- Also provide a JSON object named "service_summary" mapping service name -> short responsibility. Return this JSON after the Mermaid string in the same output.
+
 The diagram should include:
-1. Individual services (with clear names, feel free to ouse modern big name brands like AWS, GCP, Azure, etc. if relevant)
+1. Individual services (with clear names; include technology hints if relevant)
 2. Datastores and dataflow between services
 3. API gateways or ingress points
 4. Messaging components (queues, event buses) where appropriate
 5. External integrations and third-party services
 6. Deployment hints (k8s, containers) if requested
 
-Return the Mermaid diagram code and a concise JSON summary of services and their responsibilities.
+Example output (exact format expected):
 
-Example mermaid output:
-
-```mermaid
 graph TB
     API[API Gateway] --> Auth[Auth Service]
     API --> Orders[Order Service]
     Orders --> OrdersDB[(Orders DB)]
     API --> Inventory[Inventory Service]
     Inventory --> InventoryDB[(Inventory DB)]
-```
-
-Example service summary output:
 
 service_summary:
 {

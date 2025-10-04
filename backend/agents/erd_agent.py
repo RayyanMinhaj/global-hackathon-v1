@@ -13,6 +13,10 @@ GENERATE_ERD_DIAGRAM_PROMPT = """
 You are an expert in generating database ERD diagrams from table definitions.
 Given the following table definitions, generate an ERD diagram in Mermaid syntax.
 
+IMPORTANT (formatting rules):
+- Return ONLY the Mermaid ERD text — no markdown fences, no commentary, and no extra text. The string will be rendered directly as a Mermaid diagram by the frontend.
+- Ensure primary keys and foreign keys are clearly marked using Mermaid ERD conventions.
+
 The table definitions will be provided as input. Each table has a name and columns with attributes.
 Generate a proper Mermaid ERD diagram showing:
 1. All entities (tables)
@@ -20,11 +24,8 @@ Generate a proper Mermaid ERD diagram showing:
 3. Primary keys marked appropriately
 4. Foreign key relationships between tables
 
-Return only the Mermaid diagram code.
+Example output (exact format expected):
 
-Example mermaid output:
-
-```mermaid
 erDiagram
     USER {
         int id PK
@@ -37,7 +38,6 @@ erDiagram
         float total
     }
     USER ||--o{ ORDER : places
-```
 """
 
 class TableDefinition(BaseModel):

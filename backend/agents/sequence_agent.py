@@ -11,13 +11,37 @@ GENERATE_SEQUENCE_DIAGRAM_PROMPT = """
 You are an expert in generating sequence diagrams from interaction descriptions.
 Given a description of interactions between actors, services, and data stores, generate a clear sequence diagram in Mermaid syntax.
 
+IMPORTANT (formatting rules):
+- Return ONLY the Mermaid sequenceDiagram string — no markdown fences, no commentary. The frontend will render the returned Mermaid string directly.
+- Also provide a JSON object named "participants_summary" mapping participant -> short role/notes. Return this JSON after the Mermaid string.
+
 The input will contain a textual description and optional actor list. Produce a Mermaid sequenceDiagram illustrating:
 1. All actors and participants
 2. Messages between participants with labels
 3. Lifelines for long-running processes where applicable
 4. Notes or annotations for important steps
 
-Return only the Mermaid diagram code and a short JSON summary of participants.
+Example output (exact format expected):
+
+sequenceDiagram
+    participant User
+    participant API
+    participant Auth
+    participant DB
+
+    User->>API: Submit order
+    API->>Auth: Validate token
+    API->>DB: Create order record
+    DB-->>API: Order created
+    API-->>User: Confirmation
+
+participants_summary:
+{
+    "User": "End user interacting with the UI",
+    "API": "Backend API handling requests",
+    "Auth": "Authentication service validating tokens",
+    "DB": "Persistent datastore for orders"
+}
 
 Example mermaid output:
 
@@ -34,6 +58,7 @@ sequenceDiagram
         DB-->>API: Order created
         API-->>User: Confirmation
 ```
+
 Example participant summary output:
 
 participants_summary:

@@ -12,37 +12,37 @@ GENERATE_DATAFLOW_DIAGRAM_PROMPT = """
 You are an expert in generating dataflow diagrams from system component descriptions.
 Given a description of a system (components, data sources, sinks, and interactions), generate a clear Data Flow Diagram (DFD) in Mermaid syntax.
 
-The input will contain a description and optional component list. Produce a Mermaid diagram illustrating:
+IMPORTANT (formatting rules):
+- The agent MUST return a valid Mermaid diagram string only — DO NOT include markdown fences (```), explanatory text, or any other commentary.
+- The returned Mermaid string will be rendered directly by the frontend as a Mermaid diagram, so it must be syntactically correct and renderable.
+- Also include a small JSON object named "component_summary" containing role -> short description. The runtime expects two output fields: the Mermaid text (string) and the component_summary (JSON/string).
+
+Produce a Mermaid diagram illustrating:
 1. All components (processes/services)
 2. External entities (users, third-party services)
 3. Data stores (databases, files)
 4. Data flows between components and entities
 5. Labels for important data flows and protocols where applicable
 
-Return only the Mermaid diagram code and a short JSON summary of components.
+Example output (exact format expected):
 
-Example mermaid output:
-
-```mermaid
+Mermaid (single string, no fences):
 flowchart LR
-	User[User] --> Frontend[Frontend]
-	Frontend --> API[API Gateway]
-	API --> Auth[Auth Service]
-	API --> Orders[Order Service]
-	Orders --> DB[(Orders DB)]
-	Auth --> UserDB[(User DB)]
-```
-
-Example component JSON:
+  User[User] --> Frontend[Frontend]
+  Frontend --> API[API Gateway]
+  API --> Auth[Auth Service]
+  API --> Orders[Order Service]
+  Orders --> DB[(Orders DB)]
+  Auth --> UserDB[(User DB)]
 
 component_summary:
 {
-	"Frontend": "React app handling UI",
-	"API Gateway": "Routes requests to services",
-	"Auth Service": "Handles authentication and sessions",
-	"Order Service": "Processes orders and interacts with Orders DB",
-	"Orders DB": "Primary datastore for orders",
-	"User DB": "Stores user profiles and credentials"
+  "Frontend": "React app handling UI",
+  "API Gateway": "Routes requests to services",
+  "Auth Service": "Handles authentication and sessions",
+  "Order Service": "Processes orders and interacts with Orders DB",
+  "Orders DB": "Primary datastore for orders",
+  "User DB": "Stores user profiles and credentials"
 }
 """
 
