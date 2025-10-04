@@ -1,21 +1,27 @@
-# Multi-stage build for React frontend
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
-
-
-
+# Single-stage build for React frontend using serve
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
+# Environment variables for build
+ARG VITE_ENVIRONMENT_TYPE=production
 ARG VITE_BACKEND_URL_PROD
+ARG VITE_FRONTEND_URL_PROD
+ARG VITE_BACKEND_URL_DEV
+ARG VITE_FRONTEND_URL_DEV
+
+ENV VITE_ENVIRONMENT_TYPE=$VITE_ENVIRONMENT_TYPE
 ENV VITE_BACKEND_URL_PROD=$VITE_BACKEND_URL_PROD
+ENV VITE_FRONTEND_URL_PROD=$VITE_FRONTEND_URL_PROD
+ENV VITE_BACKEND_URL_DEV=$VITE_BACKEND_URL_DEV
+ENV VITE_FRONTEND_URL_DEV=$VITE_FRONTEND_URL_DEV
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including serve)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -23,34 +29,22 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Serve the application with nginx
-FROM nginx:alpine
-
-# Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Create nginx user and set permissions
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+# Create non-root user
+RUN addgroup -g 1001 -S appuser && \
+    adduser -S -D -H -u 1001 -h /app -s /sbin/nologin -G appuser -g appuser appuser
 
 # Set proper permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
-USER nginx
+USER appuser
 
 # Expose port
-EXPOSE 80
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application using serve
+CMD ["npm", "run", "serve"]
