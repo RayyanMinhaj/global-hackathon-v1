@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import MarkdownMermaidViewer from '../components/MarkdownMermaidViewer';
 
 const DocumentationDashboard: React.FC = () => {
@@ -109,16 +110,18 @@ const DocumentationDashboard: React.FC = () => {
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8">
           <div className="text-center mb-8 pt-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Documentation
-              <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-                {" "}Generator
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Generate comprehensive documentation with markdown and diagrams
-            </p>
-          </div>
+              <div className="flex items-center justify-between max-w-4xl mx-auto">
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  MiddlWare
+                  <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent"> Docs</span>
+                </h1>
+                <Link to="/" className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 text-sm">Home</Link>
+              </div>
+
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Fire your middlemen. MiddlWare turns your ideas and brain dumps into SRS documents, diagrams, and mockups devs can use.
+              </p>
+            </div>
         </div>
 
         {/* Main Dashboard */}
