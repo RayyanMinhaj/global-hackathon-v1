@@ -13,14 +13,9 @@ ARG VITE_FRONTEND_URL_DEV
 COPY package*.json ./
 RUN npm install
 
-# Copy source and build
+# Copy source
 COPY . .
-RUN npm run build
 
-# Install serve and cleanup
-RUN npm install -g serve && \
-    npm prune --production
+EXPOSE 5173
 
-EXPOSE 3000
-
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["npm", "run", "dev"]
