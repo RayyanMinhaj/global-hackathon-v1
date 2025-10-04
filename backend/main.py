@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 import logging
 from config import config
+from agents.sample_agent import generate_erd_diagram_sync
 
 logger = logging.getLogger(__name__)
 
@@ -105,11 +106,51 @@ def create_app(config_name=None):
             'code': 500
         }), 500
     
+    @app.route('/favicon.ico')
+    def favicon():
+        """Favicon endpoint to prevent 500 errors"""
+        logger.debug("Favicon request received")
+        return '', 204
+
+    # endpoint for erd diagram generation
+    @app.route('/api/generate_erd', methods=['POST'])
+    def generate_erd():
+        """Endpoint to generate ERD diagram"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+                
+            table_definitions = data.get('table_definitions', [])
+            if not table_definitions:
+                return jsonify({
+                    'error': 'No table_definitions provided',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating ERD for {len(table_definitions)} tables")
+            erd_diagram = generate_erd_diagram_sync(table_definitions)
+            
+            return jsonify({
+                'erd_diagram': erd_diagram,
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_erd endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
     # Log successful app creation
     logger.info("Flask application created successfully")
     
     return app
 
+  
 # Create the app instance
 app = create_app()
 

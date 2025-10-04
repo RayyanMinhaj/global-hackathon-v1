@@ -16,6 +16,9 @@ class Config:
     
     # Database configuration (if needed later)
     DATABASE_URL = os.environ.get('DATABASE_URL')
+
+    # OpenAI API Key
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-openai-api-key')
     
     # Server URLs based on environment
     BACKEND_URL_DEV = os.environ.get('BACKEND_URL_DEV', 'http://127.0.0.1:5000')
