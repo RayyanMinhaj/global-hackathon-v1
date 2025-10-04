@@ -2,11 +2,13 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 import logging
+import json
 from config import config
 from agents.sample_agent import generate_erd_diagram_sync
 from agents.sys_arch_agent import generate_system_architecture_sync
 from agents.dataflow_agent import generate_dataflow_sync
 from agents.sequence_agent import generate_sequence_sync
+from agents.palette_diagram import generate_palette_sync
 
 logger = logging.getLogger(__name__)
 
@@ -251,6 +253,41 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_sequence endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for color palette diagram generation
+    @app.route('/api/generate_palette', methods=['POST'])
+    def generate_palette():
+        """Endpoint to generate a horizontal color palette diagram (Mermaid flowchart)"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+
+            description = data.get('description', '')
+            style_hints = data.get('style_hints', '')
+            if not description:
+                return jsonify({
+                    'error': 'No description provided',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating palette for description length {len(description)}; hints: {style_hints}")
+            result = generate_palette_sync(description, style_hints)
+
+            return jsonify({
+                'palette_diagram': result.get('palette_diagram'),
+                'color_summary': result.get('color_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_palette endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'
