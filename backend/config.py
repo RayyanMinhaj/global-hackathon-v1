@@ -8,7 +8,7 @@ class Config:
     """Base configuration class"""
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    HOST = os.environ.get('FLASK_HOST', '127.0.0.1')
+    HOST = os.environ.get('FLASK_HOST', '0.0.0.0')
     PORT = int(os.environ.get('FLASK_PORT', 5000))
     
     # Environment type (dev/prod)
@@ -43,7 +43,7 @@ class Config:
         if self.ENVIRONMENT_TYPE == 'prod':
             return [self.FRONTEND_URL_PROD, 'http://localhost:5000', 'http://127.0.0.1:5000']
         else:
-            return ['http://localhost:5000', 'http://127.0.0.1:5000']
+            return ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'http://127.0.0.1:5173']
     
     # Logging configuration
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
