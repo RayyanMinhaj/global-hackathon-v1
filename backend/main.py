@@ -125,8 +125,4 @@ if __name__ == '__main__':
     
     logger.info(f"Server starting on {host}:{port} (debug={debug})")
     
-    app.run(
-        host=host,
-        port=port,
-        debug=debug
-    )
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
