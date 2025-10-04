@@ -15,6 +15,7 @@ const DocumentationDashboard: React.FC = () => {
 
     (async () => {
       try {
+        // 1) Generate SRS
         const resp = await fetch(`${API_URL}/api/generate_srs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -27,8 +28,94 @@ const DocumentationDashboard: React.FC = () => {
         }
 
         const data = await resp.json();
-        const content = data.srs_document || data.srs || data.document || '';
-        setGeneratedContent(content || 'No document returned from server.');
+        const srs = data.srs_document || data.srs || data.document || '';
+        let combined = srs || 'No SRS returned from server.';
+
+        // 2) Call other agent endpoints in parallel (only agent endpoints)
+        const calls = [
+          // ERD: send table_definitions as array containing the description/SRS
+          fetch(`${API_URL}/api/generate_erd`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ table_definitions: [inputText || srs] })
+          }).then(async r => ({ name: 'ERD', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+
+          // System architecture
+          fetch(`${API_URL}/api/generate_architecture`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requirements: inputText || srs })
+          }).then(async r => ({ name: 'Architecture', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+
+          // Dataflow
+          fetch(`${API_URL}/api/generate_dataflow`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: inputText || srs })
+          }).then(async r => ({ name: 'Dataflow', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+
+          // Sequence
+          fetch(`${API_URL}/api/generate_sequence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: inputText || srs })
+          }).then(async r => ({ name: 'Sequence', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+
+          // Palette
+          fetch(`${API_URL}/api/generate_palette`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: inputText || srs })
+          }).then(async r => ({ name: 'Palette', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+
+          // Microservices
+          fetch(`${API_URL}/api/generate_microservices`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ requirements: inputText || srs, scale: 'medium', consistency: 'eventual' })
+          }).then(async r => ({ name: 'Microservices', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+        ];
+
+        const results = await Promise.allSettled(calls);
+
+        // Append each agent's output
+        for (const res of results) {
+          if (res.status === 'fulfilled') {
+            const out = res.value;
+            if (!out.ok) {
+              combined += `\n\n## ${out.name} (error)\n\nRequest failed with status ${out.status} - ${out.data?.error || JSON.stringify(out.data)}`;
+              continue;
+            }
+
+            // For each agent, attempt to extract common fields and append
+            switch (out.name) {
+              case 'ERD':
+                combined += `\n\n## ERD Diagram\n\n${out.data?.erd_diagram || out.data?.erd || JSON.stringify(out.data)}`;
+                break;
+              case 'Architecture':
+                combined += `\n\n## System Architecture\n\n${out.data?.architecture_diagram || JSON.stringify(out.data)}`;
+                break;
+              case 'Dataflow':
+                combined += `\n\n## Dataflow Diagram\n\n${out.data?.dataflow_diagram || JSON.stringify(out.data)}`;
+                break;
+              case 'Sequence':
+                combined += `\n\n## Sequence Diagram\n\n${out.data?.sequence_diagram || JSON.stringify(out.data)}`;
+                break;
+              case 'Palette':
+                combined += `\n\n## Color Palette\n\n${out.data?.palette_diagram || JSON.stringify(out.data)}`;
+                break;
+              case 'Microservices':
+                combined += `\n\n## Microservices Architecture\n\n${out.data?.architecture_diagram || JSON.stringify(out.data)}`;
+                break;
+              default:
+                combined += `\n\n## ${out.name}\n\n${JSON.stringify(out.data)}`;
+            }
+          } else {
+            combined += `\n\n## Unknown Agent Error\n\n${JSON.stringify(res)}`;
+          }
+        }
+
+        setGeneratedContent(combined);
       } catch (e: any) {
         setGeneratedContent(`Error generating document: ${e?.message || e}`);
       } finally {
