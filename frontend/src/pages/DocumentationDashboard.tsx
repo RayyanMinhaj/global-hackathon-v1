@@ -3,8 +3,9 @@ import MarkdownMermaidViewer from '../components/MarkdownMermaidViewer';
 
 const DocumentationDashboard: React.FC = () => {
   const [inputText, setInputText] = useState('');
-  const [generatedContent, setGeneratedContent] = useState('');
+  // combined document content is now represented by `sections` state
   const [isGenerating, setIsGenerating] = useState(false);
+  const [sections, setSections] = useState<Array<{ name: string; content: string; status: 'loading' | 'done' | 'error' }>>([]);
 
 
 
@@ -15,7 +16,7 @@ const DocumentationDashboard: React.FC = () => {
 
     (async () => {
       try {
-        // 1) Generate SRS
+        // 1) Generate SRS first
         const resp = await fetch(`${API_URL}/api/generate_srs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -29,95 +30,64 @@ const DocumentationDashboard: React.FC = () => {
 
         const data = await resp.json();
         const srs = data.srs_document || data.srs || data.document || '';
-        let combined = srs || 'No SRS returned from server.';
+        const initial = srs || 'No SRS returned from server.';
+        // initialize sections with SRS
+        setSections([{ name: 'SRS', content: initial, status: 'done' }]);
 
-        // 2) Call other agent endpoints in parallel (only agent endpoints)
-        const calls = [
-          // ERD: send table_definitions as array containing the description/SRS
-          fetch(`${API_URL}/api/generate_erd`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ table_definitions: [inputText || srs] })
-          }).then(async r => ({ name: 'ERD', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+        // helper to manage sections incrementally
+        const addSectionLoading = (title: string) => {
+          setSections(prev => [...prev, { name: title, content: '', status: 'loading' }]);
+        };
 
-          // System architecture
-          fetch(`${API_URL}/api/generate_architecture`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requirements: inputText || srs })
-          }).then(async r => ({ name: 'Architecture', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
+        const updateSection = (title: string, content: string, status: 'done' | 'error' = 'done') => {
+          setSections(prev => prev.map(s => (s.name === title ? { ...s, content, status } : s)));
+        };
 
-          // Dataflow
-          fetch(`${API_URL}/api/generate_dataflow`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: inputText || srs })
-          }).then(async r => ({ name: 'Dataflow', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
-
-          // Sequence
-          fetch(`${API_URL}/api/generate_sequence`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: inputText || srs })
-          }).then(async r => ({ name: 'Sequence', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
-
-          // Palette
-          fetch(`${API_URL}/api/generate_palette`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: inputText || srs })
-          }).then(async r => ({ name: 'Palette', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
-
-          // Microservices
-          fetch(`${API_URL}/api/generate_microservices`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ requirements: inputText || srs, scale: 'medium', consistency: 'eventual' })
-          }).then(async r => ({ name: 'Microservices', ok: r.ok, data: await r.json().catch(() => ({})), status: r.status })),
-        ];
-
-        const results = await Promise.allSettled(calls);
-
-        // Append each agent's output
-        for (const res of results) {
-          if (res.status === 'fulfilled') {
-            const out = res.value;
-            if (!out.ok) {
-              combined += `\n\n## ${out.name} (error)\n\nRequest failed with status ${out.status} - ${out.data?.error || JSON.stringify(out.data)}`;
-              continue;
-            }
-
-            // For each agent, attempt to extract common fields and append
-            switch (out.name) {
-              case 'ERD':
-                combined += `\n\n## ERD Diagram\n\n${out.data?.erd_diagram || out.data?.erd || JSON.stringify(out.data)}`;
-                break;
-              case 'Architecture':
-                combined += `\n\n## System Architecture\n\n${out.data?.architecture_diagram || JSON.stringify(out.data)}`;
-                break;
-              case 'Dataflow':
-                combined += `\n\n## Dataflow Diagram\n\n${out.data?.dataflow_diagram || JSON.stringify(out.data)}`;
-                break;
-              case 'Sequence':
-                combined += `\n\n## Sequence Diagram\n\n${out.data?.sequence_diagram || JSON.stringify(out.data)}`;
-                break;
-              case 'Palette':
-                combined += `\n\n## Color Palette\n\n${out.data?.palette_diagram || JSON.stringify(out.data)}`;
-                break;
-              case 'Microservices':
-                combined += `\n\n## Microservices Architecture\n\n${out.data?.architecture_diagram || JSON.stringify(out.data)}`;
-                break;
-              default:
-                combined += `\n\n## ${out.name}\n\n${JSON.stringify(out.data)}`;
-            }
-          } else {
-            combined += `\n\n## Unknown Agent Error\n\n${JSON.stringify(res)}`;
+        const ensureMermaid = (code: string) => {
+          if (!code) return '';
+          if (code.includes('```mermaid')) return code;
+          const looksLikeMermaid = /(^|\n)\s*(graph|flowchart|sequenceDiagram|erDiagram|classDiagram|stateDiagram)/i.test(code);
+          if (looksLikeMermaid) {
+            return '\n\n' + '```mermaid\n' + code + '\n```' + '\n';
           }
-        }
+          return code;
+        };
 
-        setGeneratedContent(combined);
+        // sequentially call agent endpoints and append as they complete
+        const callAgent = async (name: string, url: string, body: any, extractor: (d: any) => string) => {
+          addSectionLoading(name);
+          try {
+            const r = await fetch(`${API_URL}${url}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            if (!r.ok) {
+              const err = await r.json().catch(() => ({}));
+              updateSection(name, err.error || `Request failed with status ${r.status}`, 'error');
+              return;
+            }
+            const jd = await r.json().catch(() => ({}));
+            let content = extractor(jd) || JSON.stringify(jd);
+            content = ensureMermaid(content);
+            updateSection(name, content, 'done');
+          } catch (err: any) {
+            updateSection(name, err?.message || String(err), 'error');
+          }
+        };
+
+        // Use SRS as richer input where possible
+        const source = srs || inputText;
+
+  await callAgent('ERD', '/api/generate_erd', { table_definitions: [source] }, (d) => d?.erd_diagram || d?.erd || d?.diagram || '');
+  await callAgent('System Architecture', '/api/generate_architecture', { requirements: source }, (d) => d?.architecture_diagram || d?.architecture || '');
+  await callAgent('Dataflow', '/api/generate_dataflow', { description: source }, (d) => d?.dataflow_diagram || d?.dataflow || '');
+  await callAgent('Sequence', '/api/generate_sequence', { description: source }, (d) => d?.sequence_diagram || d?.sequence || '');
+  await callAgent('Palette', '/api/generate_palette', { description: source }, (d) => d?.palette_diagram || d?.palette || '');
+  await callAgent('Microservices', '/api/generate_microservices', { requirements: source, scale: 'medium', consistency: 'eventual' }, (d) => d?.architecture_diagram || d?.architecture || '');
+
       } catch (e: any) {
-        setGeneratedContent(`Error generating document: ${e?.message || e}`);
+        setSections([{ name: 'SRS', content: `Error generating document: ${e?.message || e}`, status: 'error' }]);
       } finally {
         setIsGenerating(false);
       }
@@ -200,28 +170,34 @@ const DocumentationDashboard: React.FC = () => {
                 Generated Documentation
               </h2>
               
-              <div className="flex-1 overflow-hidden rounded-xl border border-white/30 bg-white/10 backdrop-blur-sm">
-                {generatedContent ? (
-                  <div 
-                    className="h-full overflow-y-auto max-h-[500px]" 
-                    style={{
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: 'rgba(168, 85, 247, 0.5) transparent'
-                    }}
-                  >
-                    <MarkdownMermaidViewer
-                      content={generatedContent}
-                      colorTheme={{
-                        primary: '#7C3AED',
-                        secondary: '#DB2777',
-                        accent: '#EA580C',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        text: '#1F2937',
-                        border: 'rgba(255, 255, 255, 0.3)',
-                        code: 'rgba(255, 255, 255, 0.2)'
-                      }}
-                      className="h-full p-4"
-                    />
+              <div className="flex-1 overflow-hidden rounded-xl border border-white/30 bg-white/10 backdrop-blur-sm p-4">
+                {sections.length > 0 ? (
+                  <div className="space-y-6 max-h-[600px] overflow-y-auto">
+                    {sections.map((s) => (
+                      <div key={s.name} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-lg font-semibold">{s.name}</h3>
+                          <span className={`text-sm ${s.status === 'loading' ? 'text-yellow-500' : s.status === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+                            {s.status}
+                          </span>
+                        </div>
+                        <div className="prose max-w-none">
+                          <MarkdownMermaidViewer
+                            content={s.content || (s.status === 'loading' ? 'Generating...' : 'No content')}
+                            colorTheme={{
+                              primary: '#7C3AED',
+                              secondary: '#DB2777',
+                              accent: '#EA580C',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              text: '#1F2937',
+                              border: 'rgba(255, 255, 255, 0.3)',
+                              code: 'rgba(255, 255, 255, 0.2)'
+                            }}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-500">
