@@ -4,12 +4,13 @@ import os
 import logging
 import json
 from config import config
-from agents.sample_agent import generate_erd_diagram_sync
+from agents.erd_agent import generate_erd_diagram_sync
 from agents.sys_arch_agent import generate_system_architecture_sync
 from agents.dataflow_agent import generate_dataflow_sync
 from agents.sequence_agent import generate_sequence_sync
 from agents.palette_diagram import generate_palette_sync
 from agents.microservice_agent import generate_microservices_sync
+from agents.srs_report_agent import generate_srs_sync
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +326,43 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_microservices endpoint: {str(e)}")
+            return jsonify({
+                'error': str(e),
+                'status': 'error'
+            }), 500
+
+    # endpoint for generating SRS documents
+    @app.route('/api/generate_srs', methods=['POST'])
+    def generate_srs():
+        """Endpoint to generate a Software Requirements Specification document"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'error': 'No JSON data provided',
+                    'status': 'error'
+                }), 400
+
+            description = data.get('description', '')
+            requirements = data.get('requirements', '')
+            audience = data.get('audience', '')
+
+            if not description:
+                return jsonify({
+                    'error': 'description is required',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating SRS for description length {len(description)}")
+            result = generate_srs_sync(description, requirements, audience)
+
+            return jsonify({
+                'srs_document': result.get('srs_document'),
+                'srs_summary': result.get('srs_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_srs endpoint: {str(e)}")
             return jsonify({
                 'error': str(e),
                 'status': 'error'
