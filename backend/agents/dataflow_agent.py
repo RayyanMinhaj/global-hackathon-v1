@@ -20,6 +20,30 @@ The input will contain a description and optional component list. Produce a Merm
 5. Labels for important data flows and protocols where applicable
 
 Return only the Mermaid diagram code and a short JSON summary of components.
+
+Example mermaid output:
+
+```mermaid
+flowchart LR
+	User[User] --> Frontend[Frontend]
+	Frontend --> API[API Gateway]
+	API --> Auth[Auth Service]
+	API --> Orders[Order Service]
+	Orders --> DB[(Orders DB)]
+	Auth --> UserDB[(User DB)]
+```
+
+Example component JSON:
+
+component_summary:
+{
+	"Frontend": "React app handling UI",
+	"API Gateway": "Routes requests to services",
+	"Auth Service": "Handles authentication and sessions",
+	"Order Service": "Processes orders and interacts with Orders DB",
+	"Orders DB": "Primary datastore for orders",
+	"User DB": "Stores user profiles and credentials"
+}
 """
 
 class DataflowInput(BaseModel):

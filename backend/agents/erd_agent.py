@@ -21,6 +21,23 @@ Generate a proper Mermaid ERD diagram showing:
 4. Foreign key relationships between tables
 
 Return only the Mermaid diagram code.
+
+Example mermaid output:
+
+```mermaid
+erDiagram
+    USER {
+        int id PK
+        string name
+        string email
+    }
+    ORDER {
+        int id PK
+        int user_id FK
+        float total
+    }
+    USER ||--o{ ORDER : places
+```
 """
 
 class TableDefinition(BaseModel):

@@ -61,7 +61,7 @@ async def generate_srs(description: str, requirements: str = "", audience: str =
 
         return {
             'srs_document': result.data.srs_document,
-            
+
             'srs_summary': result.data.srs_summary
         }
     except Exception as e:

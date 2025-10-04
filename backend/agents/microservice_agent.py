@@ -19,6 +19,27 @@ The diagram should include:
 6. Deployment hints (k8s, containers) if requested
 
 Return the Mermaid diagram code and a concise JSON summary of services and their responsibilities.
+
+Example mermaid output:
+
+```mermaid
+graph TB
+    API[API Gateway] --> Auth[Auth Service]
+    API --> Orders[Order Service]
+    Orders --> OrdersDB[(Orders DB)]
+    API --> Inventory[Inventory Service]
+    Inventory --> InventoryDB[(Inventory DB)]
+```
+
+Example service summary output:
+
+service_summary:
+{
+    "Auth Service": "Handles authentication and JWT issuance",
+    "Order Service": "Processes orders and writes to Orders DB",
+    "Inventory Service": "Manages stock levels and inventory DB",
+    "API Gateway": "Ingress and routing, rate-limiting"
+}
 """
 
 class MicroservicesInput(BaseModel):

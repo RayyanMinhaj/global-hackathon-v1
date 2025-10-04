@@ -18,7 +18,33 @@ The input will contain a textual description and optional actor list. Produce a 
 4. Notes or annotations for important steps
 
 Return only the Mermaid diagram code and a short JSON summary of participants.
+
+Example mermaid output:
+
+```mermaid
+sequenceDiagram
+        participant User
+        participant API
+        participant Auth
+        participant DB
+
+        User->>API: Submit order
+        API->>Auth: Validate token
+        API->>DB: Create order record
+        DB-->>API: Order created
+        API-->>User: Confirmation
+```
+Example participant summary output:
+
+participants_summary:
+{
+    "User": "End user interacting with the UI",
+    "API": "Backend API handling requests",
+    "Auth": "Authentication service validating tokens",
+    "DB": "Persistent datastore for orders"
+}
 """
+
 
 class SequenceInput(BaseModel):
     description: str

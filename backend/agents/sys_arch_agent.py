@@ -30,7 +30,29 @@ Focus on:
 - Database relationships
 
 Return only the Mermaid diagram code with proper syntax.
+
+Example mermaid output:
+
+```mermaid
+graph LR
+    User[User UI] --> Web[Web Frontend]
+    Web --> API[API Server]
+    API --> Auth[Auth Service]
+    API --> DB[(Primary DB)]
+    API --> External[Third-Party API]
+```
+
+Example component summary output:
+
+component_summary:
+{
+    "Web Frontend": "React SPA served via CDN",
+    "API Server": "Node/Python backend handling business logic",
+    "Auth Service": "OAuth2/JWT authentication",
+    "Primary DB": "Relational database for core data"
+}
 """
+
 
 class SystemRequirements(BaseModel):
     requirements: str
