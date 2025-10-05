@@ -56,29 +56,39 @@ palette_agent = Agent(
 )
 
 async def generate_palette(description: str, style_hints: str = "") -> dict:
-    try:
-        message = f"""
-        Recommend a color palette and return a Mermaid flowchart for these inputs:
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            message = f"""
+            Recommend a color palette and return a Mermaid flowchart for these inputs:
 
-        Description: {description}
-        Style hints: {style_hints}
+            Description: {description}
+            Style hints: {style_hints}
 
-        Please return a Mermaid flowchart (horizontal boxes) and a JSON color summary mapping roles to hex colors and short justifications.
-        """
+            Please return a Mermaid flowchart (horizontal boxes) and a JSON color summary mapping roles to hex colors and short justifications.
+            """
 
-        deps = PaletteInput(description=description, style_hints=style_hints)
-        result = await palette_agent.run(message, deps=deps)
+            deps = PaletteInput(description=description, style_hints=style_hints)
+            result = await palette_agent.run(message, deps=deps)
 
-        return {
-            'palette_diagram': result.data.palette_diagram,
-            'color_summary': result.data.color_summary
-        }
-    except Exception as e:
-        print(f"Error generating palette diagram: {str(e)}")
-        return {
-            'palette_diagram': f"Error generating palette diagram: {str(e)}",
-            'color_summary': f"Error: {str(e)}"
-        }
+            return {
+                'palette_diagram': result.data.palette_diagram,
+                'color_summary': result.data.color_summary
+            }
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for palette diagram generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for palette diagram generation: {str(last_error)}")
+    return {
+        'palette_diagram': f"Error generating palette diagram after {max_retries} attempts: {str(last_error)}",
+        'color_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+    }
 
 def generate_palette_sync(description: str, style_hints: str = "") -> dict:
     """Synchronous wrapper for palette generation (description + optional style_hints)"""

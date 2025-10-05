@@ -42,7 +42,7 @@ class MermaidErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-          Error rendering diagram
+          A little problems generating this diagram. Move your ass and do it yourself. 
         </div>
       );
     }
@@ -97,7 +97,7 @@ const MermaidDiagram: React.FC<{ chart: string; theme: Required<ColorTheme> }> =
         } catch (error) {
           console.error('Error rendering mermaid diagram:', error);
           if (mountedRef.current) {
-            setError('Error rendering diagram');
+            setError('A little problems generating this diagram. Move your ass and do it yourself.');
           }
         } finally {
           if (mountedRef.current) {

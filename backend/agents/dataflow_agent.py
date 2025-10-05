@@ -62,31 +62,41 @@ dataflow_agent = Agent(
 )
 
 async def generate_dataflow(description: str, components: str = "") -> dict:
-	try:
-		message = f"""
-		Generate a dataflow diagram for the following system description:
+	max_retries = 3
+	last_error = None
+	
+	for attempt in range(max_retries):
+		try:
+			message = f"""
+			Generate a dataflow diagram for the following system description:
 
-		Description: {description}
+			Description: {description}
 
-		Components: {components if components else 'Not specified - infer components from description'}
+			Components: {components if components else 'Not specified - infer components from description'}
 
-		Please return a Mermaid dataflow diagram and a concise JSON summary of components.
-		"""
+			Please return a Mermaid dataflow diagram and a concise JSON summary of components.
+			"""
 
-		deps = DataflowInput(description=description, components=components)
+			deps = DataflowInput(description=description, components=components)
 
-		result = await dataflow_agent.run(message, deps=deps)
+			result = await dataflow_agent.run(message, deps=deps)
 
-		return {
-			'dataflow_diagram': result.data.dataflow_diagram,
-			'component_summary': result.data.component_summary
-		}
-	except Exception as e:
-		print(f"Error generating dataflow diagram: {str(e)}")
-		return {
-			'dataflow_diagram': f"Error generating dataflow diagram: {str(e)}",
-			'component_summary': f"Error: {str(e)}"
-		}
+			return {
+				'dataflow_diagram': result.data.dataflow_diagram,
+				'component_summary': result.data.component_summary
+			}
+		except Exception as e:
+			last_error = e
+			print(f"Attempt {attempt + 1} failed for dataflow diagram generation: {str(e)}")
+			if attempt < max_retries - 1:
+				print(f"Retrying... ({attempt + 2}/{max_retries})")
+				await asyncio.sleep(1)  # Brief delay between retries
+	
+	print(f"All {max_retries} attempts failed for dataflow diagram generation: {str(last_error)}")
+	return {
+		'dataflow_diagram': f"Error generating dataflow diagram after {max_retries} attempts: {str(last_error)}",
+		'component_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+	}
 
 def generate_dataflow_sync(description: str, components: str = "") -> dict:
 	"""

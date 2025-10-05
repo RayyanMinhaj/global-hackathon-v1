@@ -54,20 +54,30 @@ erd_agent = Agent(
 )
 
 async def generate_erd_diagram(table_definitions: str) -> str:
-    try:
-        # Create the input message with table definitions
-        message = f"Generate an ERD diagram for these tables: {table_definitions}"
-        
-        # Create deps object
-        deps = TableDefinition(table_definitions=table_definitions)
-        
-        # Run the agent with the message and deps
-        result = await erd_agent.run(message, deps=deps)
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            # Create the input message with table definitions
+            message = f"Generate an ERD diagram for these tables: {table_definitions}"
+            
+            # Create deps object
+            deps = TableDefinition(table_definitions=table_definitions)
+            
+            # Run the agent with the message and deps
+            result = await erd_agent.run(message, deps=deps)
 
-        return result.data.erd_diagram
-    except Exception as e:
-        print(f"Error generating ERD diagram: {str(e)}")
-        return f"Error generating ERD diagram: {str(e)}"
+            return result.data.erd_diagram
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for ERD diagram generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for ERD diagram generation: {str(last_error)}")
+    return f"Error generating ERD diagram after {max_retries} attempts: {str(last_error)}"
     
 def generate_erd_diagram_sync(table_definitions: list) -> str:
     # Convert the list to a formatted JSON string for better readability by the AI

@@ -71,40 +71,50 @@ srs_agent = Agent(
 )
 
 async def generate_system_architecture(requirements: str, technology_stack: str = "", deployment_type: str = "web") -> dict:
-    try:
-        # Create the input message with system requirements
-        message = f"""
-        Generate a system architecture diagram based on these requirements:
-        
-        Requirements: {requirements}
-        
-        Technology Stack: {technology_stack if technology_stack else "Not specified - use modern web technologies"}
-        
-        Deployment Type: {deployment_type}
-        
-        Please create a comprehensive system architecture diagram showing all components, data flows, and integrations.
-        """
-        
-        # Create deps object
-        deps = SystemRequirements(
-            requirements=requirements,
-            technology_stack=technology_stack,
-            deployment_type=deployment_type
-        )
-        
-        # Run the agent with the message and deps
-        result = await srs_agent.run(message, deps=deps)
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            # Create the input message with system requirements
+            message = f"""
+            Generate a system architecture diagram based on these requirements:
+            
+            Requirements: {requirements}
+            
+            Technology Stack: {technology_stack if technology_stack else "Not specified - use modern web technologies"}
+            
+            Deployment Type: {deployment_type}
+            
+            Please create a comprehensive system architecture diagram showing all components, data flows, and integrations.
+            """
+            
+            # Create deps object
+            deps = SystemRequirements(
+                requirements=requirements,
+                technology_stack=technology_stack,
+                deployment_type=deployment_type
+            )
+            
+            # Run the agent with the message and deps
+            result = await srs_agent.run(message, deps=deps)
 
-        return {
-            'architecture_diagram': result.data.architecture_diagram,
-            'component_summary': result.data.component_summary
-        }
-    except Exception as e:
-        print(f"Error generating system architecture: {str(e)}")
-        return {
-            'architecture_diagram': f"Error generating architecture diagram: {str(e)}",
-            'component_summary': f"Error: {str(e)}"
-        }
+            return {
+                'architecture_diagram': result.data.architecture_diagram,
+                'component_summary': result.data.component_summary
+            }
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for system architecture generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for system architecture generation: {str(last_error)}")
+    return {
+        'architecture_diagram': f"Error generating architecture diagram after {max_retries} attempts: {str(last_error)}",
+        'component_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+    }
 
 def generate_system_architecture_sync(requirements: str, technology_stack: str = "", deployment_type: str = "web") -> dict:
     """

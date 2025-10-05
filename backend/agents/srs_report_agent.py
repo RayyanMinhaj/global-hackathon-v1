@@ -45,31 +45,40 @@ srs_agent = Agent(
 )
 
 async def generate_srs(description: str, requirements: str = "", audience: str = "") -> dict:
-    try:
-        message = f"""
-        Generate a Software Requirements Specification for the project inferred from this description. Infer a short, descriptive project name.
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            message = f"""
+            Generate a Software Requirements Specification for the project inferred from this description. Infer a short, descriptive project name.
 
-        Description: {description}
-        Requirements: {requirements}
-        Audience: {audience}
+            Description: {description}
+            Requirements: {requirements}
+            Audience: {audience}
 
-        Follow the SRS structure and return the full SRS text and a JSON summary mapping the main sections to short bullets. Include the inferred project name at the top of the document.
-        """
+            Follow the SRS structure and return the full SRS text and a JSON summary mapping the main sections to short bullets. Include the inferred project name at the top of the document.
+            """
 
-        deps = SRSInput(description=description, requirements=requirements, audience=audience)
-        result = await srs_agent.run(message, deps=deps)
+            deps = SRSInput(description=description, requirements=requirements, audience=audience)
+            result = await srs_agent.run(message, deps=deps)
 
-        return {
-            'srs_document': result.data.srs_document,
-
-            'srs_summary': result.data.srs_summary
-        }
-    except Exception as e:
-        print(f"Error generating SRS document: {str(e)}")
-        return {
-            'srs_document': f"Error generating SRS document: {str(e)}",
-            'srs_summary': f"Error: {str(e)}"
-        }
+            return {
+                'srs_document': result.data.srs_document,
+                'srs_summary': result.data.srs_summary
+            }
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for SRS document generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for SRS document generation: {str(last_error)}")
+    return {
+        'srs_document': f"Error generating SRS document after {max_retries} attempts: {str(last_error)}",
+        'srs_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+    }
 
 def generate_srs_sync(description: str, requirements: str = "", audience: str = "") -> dict:
     return asyncio.run(generate_srs(description, requirements, audience))

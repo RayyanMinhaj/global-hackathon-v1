@@ -87,31 +87,41 @@ sequence_agent = Agent(
 )
 
 async def generate_sequence(description: str, actors: str = "") -> dict:
-    try:
-        message = f"""
-        Generate a sequence diagram for the following interaction description:
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            message = f"""
+            Generate a sequence diagram for the following interaction description:
 
-        Description: {description}
+            Description: {description}
 
-        Actors: {actors if actors else 'Not specified - infer actors from description'}
+            Actors: {actors if actors else 'Not specified - infer actors from description'}
 
-        Please return a Mermaid sequenceDiagram and a concise JSON summary of participants.
-        """
+            Please return a Mermaid sequenceDiagram and a concise JSON summary of participants.
+            """
 
-        deps = SequenceInput(description=description, actors=actors)
+            deps = SequenceInput(description=description, actors=actors)
 
-        result = await sequence_agent.run(message, deps=deps)
+            result = await sequence_agent.run(message, deps=deps)
 
-        return {
-            'sequence_diagram': result.data.sequence_diagram,
-            'participant_summary': result.data.participant_summary
-        }
-    except Exception as e:
-        print(f"Error generating sequence diagram: {str(e)}")
-        return {
-            'sequence_diagram': f"Error generating sequence diagram: {str(e)}",
-            'participant_summary': f"Error: {str(e)}"
-        }
+            return {
+                'sequence_diagram': result.data.sequence_diagram,
+                'participant_summary': result.data.participant_summary
+            }
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for sequence diagram generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for sequence diagram generation: {str(last_error)}")
+    return {
+        'sequence_diagram': f"Error generating sequence diagram after {max_retries} attempts: {str(last_error)}",
+        'participant_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+    }
 
 def generate_sequence_sync(description: str, actors: str = "") -> dict:
     """

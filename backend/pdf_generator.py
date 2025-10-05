@@ -467,22 +467,35 @@ class PDFGenerator:
         parser = get_markdown_parser()
         content = parser.clean_markdown_for_pdf(content)
         print(content)
-        # Extract Mermaid diagrams first with better pattern matching
-        mermaid_pattern = r'<code></code>`mermaid\n(.*?)\n<code></code>`'
-        mermaid_matches = re.findall(mermaid_pattern, content, re.DOTALL)
         
-        logger.info(f"Found {len(mermaid_matches)} Mermaid diagrams in content")
+        # Normalize line endings first for consistent matching
+        content = content.replace('\r\n', '\n').replace('\r', '\n')
         
-        # DEBUG: Test the first Mermaid diagram if any
-       
-    
-        # Replace mermaid blocks with numbered placeholders
+        # Extract Mermaid diagrams with robust pattern matching
+        mermaid_pattern = r'```\s*mermaid\s*\n(.*?)\n\s*```'
+        
+        # Use finditer to get both the diagram content and exact match positions
+        mermaid_data = []
+        for match_obj in re.finditer(mermaid_pattern, content, re.DOTALL | re.IGNORECASE):
+            mermaid_data.append({
+                'diagram': match_obj.group(1),
+                'full_match': match_obj.group(0),
+                'start': match_obj.start(),
+                'end': match_obj.end()
+            })
+        
+        logger.info(f"Found {len(mermaid_data)} Mermaid diagrams in content")
+        
+        # Replace mermaid blocks with numbered placeholders (from end to start to preserve positions)
         mermaid_replacements = {}
-        for i, match in enumerate(mermaid_matches):
-            placeholder = f'[MERMAID_DIAGRAM_{i}]'
-            mermaid_replacements[placeholder] = match
-            content = content.replace(f'<code></code>`mermaid\n{match}\n<code></code>`', placeholder, 1)
-            logger.info(f"Created placeholder {placeholder} for Mermaid diagram {i+1}")
+        for i, data in enumerate(reversed(mermaid_data)):
+            actual_index = len(mermaid_data) - 1 - i
+            placeholder = f'[MERMAID_DIAGRAM_{actual_index}]'
+            mermaid_replacements[placeholder] = data['diagram']
+            
+            # Replace using exact match from regex
+            content = content[:data['start']] + placeholder + content[data['end']:]
+            logger.info(f"Created placeholder {placeholder} for Mermaid diagram {actual_index + 1}")
         
         # Parse and handle tables first
         tables = parser.parse_markdown_tables(content)
@@ -493,7 +506,7 @@ class PDFGenerator:
             # Remove original table markdown from content
             table_text = self._reconstruct_table_text(table)
             content = content.replace(table_text, placeholder, 1)
-        
+            
         # Split content by double newlines for paragraph processing
         sections = content.split('\n\n')
         
@@ -533,35 +546,35 @@ class PDFGenerator:
                     story.append(Spacer(1, 12))
                 continue
             
-            # Handle code blocks
-            if section.startswith('```') and section.endswith('```'):
-                # Single section code block
-                lines = section.split('\n')
-                if len(lines) >= 2:
-                    language = lines[0][3:].strip()
-                    code_content = '\n'.join(lines[1:-1])
-                    if code_content.strip():
-                        story.append(Spacer(1, 8))
-                        story.append(Paragraph(code_content, self.styles['CodeBlock']))
-                        story.append(Spacer(1, 8))
-                continue
-            elif section.startswith('```'):
-                in_code_block = True
-                code_block_content = [section[3:]]
-                continue
-            elif section.endswith('```'):
-                in_code_block = False
-                code_block_content.append(section[:-3])
-                code_text = '\n'.join(code_block_content).strip()
-                if code_text:
-                    story.append(Spacer(1, 8))
-                    story.append(Paragraph(code_text, self.styles['CodeBlock']))
-                    story.append(Spacer(1, 8))
-                code_block_content = []
-                continue
-            elif in_code_block:
-                code_block_content.append(section)
-                continue
+            # # Handle code blocks
+            # if section.startswith('```') and section.endswith('```'):
+            #     # Single section code block
+            #     lines = section.split('\n')
+            #     if len(lines) >= 2:
+            #         language = lines[0][3:].strip()
+            #         code_content = '\n'.join(lines[1:-1])
+            #         if code_content.strip():
+            #             story.append(Spacer(1, 8))
+            #             story.append(Paragraph(code_content, self.styles['CodeBlock']))
+            #             story.append(Spacer(1, 8))
+            #     continue
+            # elif section.startswith('```'):
+            #     in_code_block = True
+            #     code_block_content = [section[3:]]
+            #     continue
+            # elif section.endswith('```'):
+            #     in_code_block = False
+            #     code_block_content.append(section[:-3])
+            #     code_text = '\n'.join(code_block_content).strip()
+            #     if code_text:
+            #         story.append(Spacer(1, 8))
+            #         story.append(Paragraph(code_text, self.styles['CodeBlock']))
+            #         story.append(Spacer(1, 8))
+            #     code_block_content = []
+            #     continue
+            # elif in_code_block:
+            #     code_block_content.append(section)
+            #     continue
             
             if not section:
                 continue

@@ -57,30 +57,40 @@ microservice_agent = Agent(
 )
 
 async def generate_microservices(requirements: str, scale: str = "medium", consistency: str = "eventual") -> dict:
-    try:
-        message = f"""
-        Generate a microservices architecture diagram according to these inputs:
+    max_retries = 3
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            message = f"""
+            Generate a microservices architecture diagram according to these inputs:
 
-        Requirements: {requirements}
-        Scale: {scale}
-        Consistency: {consistency}
+            Requirements: {requirements}
+            Scale: {scale}
+            Consistency: {consistency}
 
-        Please return a Mermaid diagram and a JSON service summary.
-        """
+            Please return a Mermaid diagram and a JSON service summary.
+            """
 
-        deps = MicroservicesInput(requirements=requirements, scale=scale, consistency=consistency)
-        result = await microservice_agent.run(message, deps=deps)
+            deps = MicroservicesInput(requirements=requirements, scale=scale, consistency=consistency)
+            result = await microservice_agent.run(message, deps=deps)
 
-        return {
-            'architecture_diagram': result.data.architecture_diagram,
-            'service_summary': result.data.service_summary
-        }
-    except Exception as e:
-        print(f"Error generating microservices architecture: {str(e)}")
-        return {
-            'architecture_diagram': f"Error generating architecture diagram: {str(e)}",
-            'service_summary': f"Error: {str(e)}"
-        }
+            return {
+                'architecture_diagram': result.data.architecture_diagram,
+                'service_summary': result.data.service_summary
+            }
+        except Exception as e:
+            last_error = e
+            print(f"Attempt {attempt + 1} failed for microservices architecture generation: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Retrying... ({attempt + 2}/{max_retries})")
+                await asyncio.sleep(1)  # Brief delay between retries
+    
+    print(f"All {max_retries} attempts failed for microservices architecture generation: {str(last_error)}")
+    return {
+        'architecture_diagram': f"Error generating architecture diagram after {max_retries} attempts: {str(last_error)}",
+        'service_summary': f"Error after {max_retries} attempts: {str(last_error)}"
+    }
 
 def generate_microservices_sync(requirements: str, scale: str = "medium", consistency: str = "eventual") -> dict:
     return asyncio.run(generate_microservices(requirements, scale, consistency))
