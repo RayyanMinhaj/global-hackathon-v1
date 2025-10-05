@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
-export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 border border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105">
-                <span className="text-pink-500 text-2xl"></span>unction LandingPage() {
+export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -38,7 +36,7 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
             <a href="#" className="hover:text-purple-600 transition-colors">Resources</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="hidden sm:inline-block px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-md">Generate Docs</Link>
+            <button className="hidden sm:inline-block px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-md">Generate Docs</button>
           </div>
         </div>
       </nav>
@@ -60,13 +58,13 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
               Stop burning money on people who just make slides. MiddlWare takes raw input from you (ideas, notes, brain dumps) and instantly spits out SRS docs, SDS diagrams, and mockups that your devs can actually use.
           </p>
           <p className="text-md text-gray-600 mb-12 max-w-3xl mx-auto font-light">
-            Startups love us because they can’t afford corporate hierarchies. Big companies use us because cutting middlemen saves six figures.
+            Startups love us because they can't afford corporate hierarchies. Big companies use us because cutting middlemen saves six figures.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/dashboard" className="group px-8 py-4 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-lg text-purple-700 font-semibold hover:bg-white/30 hover:border-white/50 transition-all duration-300 flex items-center gap-2 shadow-lg">
+            <button onClick={() => window.location.href = '/dashboard'} className="group px-8 py-4 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-lg text-purple-700 font-semibold hover:bg-white/30 hover:border-white/50 transition-all duration-300 flex items-center gap-2 shadow-lg">
               Try MiddlWare.
               <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
+            </button>
             <button className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300 backdrop-blur-lg">
               Learn how we replace PMs
             </button>
@@ -90,7 +88,7 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-purple-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-purple-600 text-2xl"></span>
+                <span className="text-purple-600 text-2xl">⚡</span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Cut the Fluff</h3>
               <p className="text-gray-700">
@@ -100,7 +98,7 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
             
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-pink-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-pink-500 text-2xl"></span>
+                <span className="text-pink-500 text-2xl">💰</span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Save the Dollars</h3>
               <p className="text-gray-700">
@@ -110,7 +108,7 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
             
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-orange-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-orange-500 text-2xl"></span>
+                <span className="text-orange-500 text-2xl">🚀</span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Get Sh*t Done.</h3>
               <p className="text-gray-700">
@@ -131,7 +129,7 @@ export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2
             Join thousands of teams already using MiddlWare to achieve their goals.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300">
+            <button onClick={() => window.location.href = '/dashboard'} className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-white font-semibold hover:shadow-2xl hover:scale-105 transition-all duration-300">
               Get Started Free
             </button>
             <button className="px-8 py-4 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-lg text-gray-700 font-semibold hover:bg-white/30 hover:border-white/50 transition-all duration-300">

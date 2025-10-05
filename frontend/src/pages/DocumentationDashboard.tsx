@@ -13,7 +13,7 @@ const DocumentationDashboard: React.FC = () => {
   const [screenMockups, setScreenMockups] = useState<Array<{ name: string; mockupUrl?: string; status: 'loading' | 'done' | 'error' }>>([]);
 
   const handleGenerate = () => {
-    const API_URL = (import.meta.env && (import.meta.env.VITE_BACKEND_URL_PROD as string)) || 'http://localhost:5000';
+    const API_URL = (import.meta.env && (import.meta.env.VITE_BACKEND_URL_PROD as string)) || 'http://localhost:3000';
 
     setIsGenerating(true);
     setHasGenerated(true);
