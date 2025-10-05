@@ -12,6 +12,8 @@ import re
 import markdown2
 from datetime import datetime
 import json
+import struct
+import imghdr
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, 
@@ -23,7 +25,6 @@ from reportlab.lib.colors import HexColor, Color
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT, TA_JUSTIFY
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-from PIL import Image as PILImage
 from markdown_utils import get_markdown_parser
 
 logger = logging.getLogger(__name__)
@@ -928,12 +929,39 @@ class PDFGenerator:
             logger.error(f"Error in Mermaid generation: {e}")
             return None
 
+    def _get_png_dimensions(self, image_path: str) -> Tuple[int, int]:
+        """Get PNG image dimensions using native Python (no PIL required)"""
+        try:
+            with open(image_path, 'rb') as f:
+                # PNG signature
+                if f.read(8) != b'\x89PNG\r\n\x1a\n':
+                    raise ValueError("Not a valid PNG file")
+                
+                # Read IHDR chunk
+                f.read(4)  # chunk length
+                if f.read(4) != b'IHDR':
+                    raise ValueError("IHDR chunk not found")
+                
+                # Width and height are the first 8 bytes of IHDR data
+                width, height = struct.unpack('>II', f.read(8))
+                return width, height
+        except Exception as e:
+            logger.warning(f"Could not read PNG dimensions: {e}")
+            # Return default dimensions if we can't read them
+            return 800, 600
+
     def _process_mermaid_image_simple(self, image_path: str) -> Optional[Image]:
         """Simplified image processing for Mermaid PNG files"""
         try:
             # Verify file exists and has content
             if not os.path.exists(image_path) or os.path.getsize(image_path) == 0:
                 logger.warning(f"Image file does not exist or is empty: {image_path}")
+                return None
+            
+            # Validate that it's a valid image file
+            image_type = imghdr.what(image_path)
+            if image_type not in ['png', 'jpeg', 'gif']:
+                logger.warning(f"Unsupported image format: {image_type}")
                 return None
             
             logger.info(f"Processing Mermaid image: {image_path} (size: {os.path.getsize(image_path)} bytes)")
@@ -946,42 +974,45 @@ class PDFGenerator:
             image_buffer = BytesIO(image_data)
             
             try:
-                # Use PIL to get proper dimensions and validate image
-                with PILImage.open(image_buffer) as pil_img:
-                    logger.info(f"Original image dimensions: {pil_img.size}, mode: {pil_img.mode}")
-                    
-                    # Calculate optimal size for PDF (maintain aspect ratio)
-                    original_width, original_height = pil_img.size
-                    
-                    # Target dimensions for PDF
-                    max_width_inches = 6.0 * inch
-                    max_height_inches = 4.5 * inch
-                    
-                    # Calculate scaling to fit within max dimensions
-                    width_scale = max_width_inches / (original_width / 96.0)  # Assuming 96 DPI
-                    height_scale = max_height_inches / (original_height / 96.0)
-                    scale = min(width_scale, height_scale, 1.0)  # Don't scale up
-                    
-                    # Calculate final dimensions
-                    final_width = (original_width / 96.0) * scale
-                    final_height = (original_height / 96.0) * scale
-                    
-                    # Ensure minimum readable size
-                    min_width = 3.0 * inch
-                    min_height = 2.0 * inch
-                    if final_width < min_width:
-                        scale_factor = min_width / final_width
-                        final_width = min_width
-                        final_height = final_height * scale_factor
-                    if final_height < min_height:
-                        scale_factor = min_height / final_height
-                        final_height = min_height  
-                        final_width = final_width * scale_factor
+                # Get image dimensions for PNG files
+                if image_type == 'png':
+                    original_width, original_height = self._get_png_dimensions(image_path)
+                    logger.info(f"Original image dimensions: {original_width}x{original_height}")
+                else:
+                    # For other formats, use default dimensions
+                    original_width, original_height = 800, 600
+                    logger.info(f"Using default dimensions for {image_type} image: {original_width}x{original_height}")
+                
+                # Calculate optimal size for PDF (maintain aspect ratio)
+                # Target dimensions for PDF
+                max_width_inches = 6.0 * inch
+                max_height_inches = 4.5 * inch
+                
+                # Calculate scaling to fit within max dimensions
+                width_scale = max_width_inches / (original_width / 96.0)  # Assuming 96 DPI
+                height_scale = max_height_inches / (original_height / 96.0)
+                scale = min(width_scale, height_scale, 1.0)  # Don't scale up
+                
+                # Calculate final dimensions
+                final_width = (original_width / 96.0) * scale
+                final_height = (original_height / 96.0) * scale
+                
+                # Ensure minimum readable size
+                min_width = 3.0 * inch
+                min_height = 2.0 * inch
+                if final_width < min_width:
+                    scale_factor = min_width / final_width
+                    final_width = min_width
+                    final_height = final_height * scale_factor
+                if final_height < min_height:
+                    scale_factor = min_height / final_height
+                    final_height = min_height  
+                    final_width = final_width * scale_factor
                 
                 logger.info(f"Final image dimensions: {final_width:.2f} x {final_height:.2f} inches")
         
-            except Exception as pil_error:
-                logger.warning(f"PIL image validation failed: {pil_error}, using default size")
+            except Exception as dimension_error:
+                logger.warning(f"Image dimension calculation failed: {dimension_error}, using default size")
                 final_width = 5.0 * inch
                 final_height = 3.5 * inch
             
