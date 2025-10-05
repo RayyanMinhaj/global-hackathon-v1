@@ -20,7 +20,7 @@ const getBackendUrl = (): string => {
   if (environment === 'prod') {
     return import.meta.env.VITE_BACKEND_URL_PROD || 'https://desirable-gentleness-production.up.railway.app';
   } else {
-    return import.meta.env.VITE_BACKEND_URL_DEV || 'http://127.0.0.1:5000';
+    return import.meta.env.VITE_BACKEND_URL_DEV || 'http://127.0.0.1:3000';
   }
 };
 

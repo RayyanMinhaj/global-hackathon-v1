@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import MarkdownMermaidViewer from '../components/MarkdownMermaidViewer';
 import ScreenMockupDisplay from '../components/ScreenMockupDisplay';
+import { config } from '../config/environment';
 
 type ViewType = 'srs' | 'diagrams' | 'screens';
 
@@ -11,9 +12,62 @@ const DocumentationDashboard: React.FC = () => {
   const [hasGenerated, setHasGenerated] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('srs');
   const [screenMockups, setScreenMockups] = useState<Array<{ name: string; mockupUrl?: string; status: 'loading' | 'done' | 'error' }>>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {    
+    setIsDownloading(true);
+    
+    try {
+      // Combine all SRS and diagram content
+      const allContent = sections
+        .filter(section => section.status === 'done' && section.content)
+        .map(section => {
+          return `# ${section.name}\n\n${section.content}\n\n---\n\n`;
+        })
+        .join('');
+
+      if (!allContent.trim()) {
+        alert('No content available to download. Please generate documentation first.');
+        return;
+      }
+
+      const response = await fetch(`${config.backendUrl}/api/export/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: allContent,
+          filename: 'technical-documentation.pdf'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      // Handle the PDF download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'technical-documentation.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (error: any) {
+      console.error('Error downloading PDF:', error);
+      alert(`Failed to download PDF: ${error.message}`);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleGenerate = () => {
-    const API_URL = (import.meta.env && (import.meta.env.VITE_BACKEND_URL_PROD as string)) || 'http://localhost:3000';
+    const API_URL = config.backendUrl;
 
     setIsGenerating(true);
     setHasGenerated(true);
@@ -218,17 +272,44 @@ const DocumentationDashboard: React.FC = () => {
                     <h2 className="text-2xl font-semibold text-gray-800">Preview</h2>
                   </div>
                   
-                  {/* View Type Dropdown */}
-                  <div className="relative">
-                    <select
-                      value={currentView}
-                      onChange={(e) => setCurrentView(e.target.value as ViewType)}
-                      className="px-4 py-2 rounded-lg border-2 border-white/40 bg-white/30 backdrop-blur-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400/50 transition-all duration-300"
+                  <div className="flex items-center gap-4">
+                    {/* Download PDF Button */}
+                    <button
+                      onClick={handleDownloadPDF}
+                      disabled={isDownloading || sections.filter(s => s.status === 'done').length === 0}
+                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
+                        isDownloading || sections.filter(s => s.status === 'done').length === 0
+                          ? 'bg-gray-300/50 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:shadow-lg hover:scale-105'
+                      }`}
                     >
-                      <option value="srs">SRS Document</option>
-                      <option value="diagrams">Diagrams</option>
-                      <option value="screens">Screen Mockups</option>
-                    </select>
+                      {isDownloading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Download PDF
+                        </>
+                      )}
+                    </button>
+                    
+                    {/* View Type Dropdown */}
+                    <div className="relative">
+                      <select
+                        value={currentView}
+                        onChange={(e) => setCurrentView(e.target.value as ViewType)}
+                        className="px-4 py-2 rounded-lg border-2 border-white/40 bg-white/30 backdrop-blur-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400/50 transition-all duration-300"
+                      >
+                        <option value="srs">SRS Document</option>
+                        <option value="diagrams">Diagrams</option>
+                        <option value="screens">Screen Mockups</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 
