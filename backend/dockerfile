@@ -27,6 +27,29 @@ RUN apt-get update \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apk add --no-cache \
+    curl \
+    nodejs \
+    npm \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    ttf-dejavu \
+    ttf-droid \
+    ttf-liberation \
+    bash \
+    udev \
+    ttf-opensans
+
+# Install Mermaid CLI globally with specific version for better stability
+RUN npm install -g @mermaid-js/mermaid-cli@10.6.1
+
+# Set Chrome/Chromium path for Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Copy requirements first for better caching
 COPY requirements.txt .
@@ -38,6 +61,14 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy application code
 COPY . .
 
+# Create logs directory and temp directory for mmdc
+RUN mkdir -p logs /tmp/mmdc
+
+
+# Ensure mmdc config files have proper permissions and exist
+RUN chmod 644 /app/.mmdc 2>/dev/null || true
+RUN chmod 644 /app/puppeteer-config.json 2>/dev/null || true
+
 # Create logs directory
 RUN mkdir -p logs
 
@@ -45,6 +76,9 @@ RUN mkdir -p logs
 RUN adduser --disabled-password --gecos '' appuser \
     && chown -R appuser:appuser /app
 USER appuser
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # Expose port
 EXPOSE 5000

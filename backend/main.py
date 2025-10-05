@@ -4,6 +4,7 @@ import os
 import logging
 import json
 from config import config
+from pdf_generator import PDFGenerator
 from agents.erd_agent import generate_erd_diagram_sync
 from agents.sys_arch_agent import generate_system_architecture_sync
 from agents.dataflow_agent import generate_dataflow_sync
@@ -367,6 +368,63 @@ def create_app(config_name=None):
                 'error': str(e),
                 'status': 'error'
             }), 500
+    
+    @app.route('/api/export/pdf', methods=['POST', 'OPTIONS'])
+    def export_pdf():
+        """Export document as PDF file"""
+        if request.method == 'OPTIONS':
+            return '', 204
+        try:
+            data = request.get_json()
+            if not data or 'content' not in data:
+                return jsonify({
+                    'success': False,
+                    'error': 'Missing content in request body'
+                }), 400
+            
+            content = data['content']
+            filename = data.get('filename', 'technical-document.pdf')
+            session_id = data.get('session_id')  # Optional session ID for user isolation
+            
+            # Generate PDF with better error handling
+            try:
+                pdf_gen = PDFGenerator()
+                pdf_buffer = pdf_gen.generate_pdf(content, filename, session_id)
+                
+                return app.response_class(
+                    pdf_buffer.getvalue(),
+                    mimetype='application/pdf',
+                    headers={
+                        'Content-Disposition': f'attachment; filename="{filename}"',
+                        'Content-Type': 'application/pdf'
+                    }
+                )
+            except AttributeError as attr_error:
+                # Handle specific PDF generation library errors
+                logger.error(f"PDF generation library error: {attr_error}")
+                
+                # Fallback: Generate a simple text-based PDF or return markdown
+                import io
+                fallback_content = f"# PDF Generation Error\n\nThe PDF could not be generated due to a library issue.\n\n## Original Content:\n\n{content}"
+                
+                return app.response_class(
+                    fallback_content,
+                    mimetype='text/plain',
+                    headers={
+                        'Content-Disposition': f'attachment; filename="{filename.replace(".pdf", ".txt")}"',
+                        'Content-Type': 'text/plain'
+                    }
+                )
+            
+        except Exception as e:
+            logger.error(f"Error exporting PDF: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to export PDF',
+                'details': str(e)
+            }), 500
+        
+    
 
     # Log successful app creation
     logger.info("Flask application created successfully")
@@ -388,4 +446,4 @@ if __name__ == '__main__':
     
     logger.info(f"Server starting on {host}:{port} (debug={debug})")
     
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 3000)))
