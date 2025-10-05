@@ -255,8 +255,8 @@ const MarkdownMermaidViewer: React.FC<MarkdownMermaidViewerProps> = ({
               <h1 
                 className="text-3xl font-bold mb-4 pb-2 border-b"
                 style={{ 
-                  color: theme.accent,
-                  borderColor: `${theme.accent}33`
+                  color: '#fff',
+                  borderColor: `${theme.primary}33`
                 }}
               >
                 {children}
@@ -268,7 +268,7 @@ const MarkdownMermaidViewer: React.FC<MarkdownMermaidViewerProps> = ({
             return (
               <h2 
                 className="text-2xl font-bold mb-3 mt-6"
-                style={{ color: theme.secondary }}
+                style={{ color: '#fff' }}
               >
                 {children}
               </h2>
