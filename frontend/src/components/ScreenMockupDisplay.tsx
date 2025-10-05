@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ScreenMockupDisplayProps {
   mockupUrl?: string;
   title?: string;
