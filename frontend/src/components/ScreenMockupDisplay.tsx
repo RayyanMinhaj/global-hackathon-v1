@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import { config } from '../config/environment';
+
 interface ScreenMockupDisplayProps {
   mockupUrl?: string;
   title?: string;
@@ -10,6 +13,14 @@ interface ScreenMockupDisplayProps {
     text?: string;
     border?: string;
   };
+  // New props for API integration
+  generateFromAPI?: boolean;
+  description?: string;
+  designPreferences?: string;
+  screens?: string;
+  onMockupsGenerated?: (mockups: { mockups: Array<{ screen_name: string; description: string; html_content: string }>; design_summary: string }) => void;
+  // New prop for direct HTML content
+  htmlContent?: string;
 }
 
 const ScreenMockupDisplay = ({
@@ -23,8 +34,109 @@ const ScreenMockupDisplay = ({
     background: 'rgba(255, 255, 255, 0.05)',
     text: '#1F2937',
     border: 'rgba(255, 255, 255, 0.3)',
-  }
+  },
+  generateFromAPI = false,
+  description = '',
+  designPreferences = '',
+  screens = '',
+  onMockupsGenerated,
+  htmlContent
 }: ScreenMockupDisplayProps) => {
+  const [generatedMockups, setGeneratedMockups] = useState<Array<{ screen_name: string; description: string; html_content: string }>>([]);
+  const [currentMockupIndex, setCurrentMockupIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // API call to generate mockups
+  const generateMockups = async () => {
+    if (!description) {
+      setError('Description is required to generate mockups');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use the backend URL from environment
+      const response = await fetch(`${config.backendUrl}/api/generate_mockups`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description,
+          design_preferences: designPreferences,
+          screens
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Received mockups data:', data); // Debug log
+
+      if (data.status === 'success') {
+        // Parse the mockups data (expecting JSON string)
+        let mockupsData;
+        try {
+          mockupsData = typeof data.mockups_data === 'string' 
+            ? JSON.parse(data.mockups_data) 
+            : data.mockups_data;
+        } catch (e) {
+          console.error('Error parsing mockups data:', e, 'Raw data:', data.mockups_data);
+          throw new Error('Invalid mockups data format');
+        }
+
+        console.log('Parsed mockups data:', mockupsData); // Debug log
+        setGeneratedMockups(mockupsData.mockups || []);
+        setCurrentMockupIndex(0);
+        
+        if (onMockupsGenerated) {
+          onMockupsGenerated(mockupsData);
+        }
+      } else {
+        throw new Error(data.message || 'Failed to generate mockups');
+      }
+    } catch (err) {
+      console.error('Error generating mockups:', err); // Debug log
+      setError(err instanceof Error ? err.message : 'Failed to generate mockups');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Auto-generate on mount if generateFromAPI is true
+  useEffect(() => {
+    if (generateFromAPI && description) {
+      generateMockups();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generateFromAPI, description, designPreferences, screens]);
+
+  // Get current mockup content
+  const getCurrentMockupContent = () => {
+    // If we have htmlContent prop, use it first
+    if (htmlContent) {
+      return htmlContent;
+    }
+    // If we have generated mockups, use them
+    if (generatedMockups.length > 0) {
+      return generatedMockups[currentMockupIndex]?.html_content || '';
+    }
+    // Fall back to default mockup content
+    return getMockupContent();
+  };
+
+  // Get current mockup title
+  const getCurrentMockupTitle = () => {
+    if (generatedMockups.length > 0) {
+      return generatedMockups[currentMockupIndex]?.screen_name || title;
+    }
+    return title;
+  };
   
   // Generate different mockup content based on title
   const getMockupContent = () => {
@@ -447,7 +559,7 @@ const ScreenMockupDisplay = ({
     `;
   };
 
-  const defaultMockupContent = getMockupContent();
+
 
   return (
     <div className={`w-full ${className}`}>
@@ -456,9 +568,52 @@ const ScreenMockupDisplay = ({
           className="text-lg font-semibold flex items-center gap-2"
           style={{ color: colorTheme.text }}
         >
-          <span className="text-xl"></span>
-          {title}
+          <span className="text-xl">🖥️</span>
+          {getCurrentMockupTitle()}
         </h3>
+        
+        {/* Generate button and controls */}
+        {generateFromAPI && (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              onClick={generateMockups}
+              disabled={isLoading || !description}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Generating...' : 'Generate Mockups'}
+            </button>
+            
+            {/* Mockup navigation */}
+            {generatedMockups.length > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentMockupIndex(Math.max(0, currentMockupIndex - 1))}
+                  disabled={currentMockupIndex === 0}
+                  className="px-3 py-1 bg-gray-600 text-white rounded disabled:opacity-50"
+                >
+                  ← Prev
+                </button>
+                <span className="text-sm px-2" style={{ color: colorTheme.text }}>
+                  {currentMockupIndex + 1} of {generatedMockups.length}
+                </span>
+                <button
+                  onClick={() => setCurrentMockupIndex(Math.min(generatedMockups.length - 1, currentMockupIndex + 1))}
+                  disabled={currentMockupIndex === generatedMockups.length - 1}
+                  className="px-3 py-1 bg-gray-600 text-white rounded disabled:opacity-50"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Error display */}
+        {error && (
+          <div className="mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
       </div>
       
       <div 
@@ -494,18 +649,25 @@ const ScreenMockupDisplay = ({
         
         {/* Website content iframe */}
         <div className="w-full" style={{ height: '500px' }}>
-          {mockupUrl ? (
+          {isLoading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p style={{ color: colorTheme.text }}>Generating your mockups...</p>
+              </div>
+            </div>
+          ) : mockupUrl ? (
             <iframe
               src={mockupUrl}
               className="w-full h-full border-0"
-              title={title}
+              title={getCurrentMockupTitle()}
               sandbox="allow-scripts allow-same-origin"
             />
           ) : (
             <iframe
-              srcDoc={defaultMockupContent}
+              srcDoc={getCurrentMockupContent()}
               className="w-full h-full border-0"
-              title={title}
+              title={getCurrentMockupTitle()}
               sandbox="allow-scripts"
             />
           )}
@@ -514,12 +676,16 @@ const ScreenMockupDisplay = ({
       
       {/* Mockup info */}
       <div className="mt-3 text-sm" style={{ color: `${colorTheme.text}80` }}>
-        <p>
-          {mockupUrl 
-            ? 'Interactive website mockup preview' 
-            : 'Default mockup template - actual design will be generated based on your requirements'
-          }
-        </p>
+        {generatedMockups.length > 0 ? (
+          <div>
+            <p><strong>Generated Mockup:</strong> {generatedMockups[currentMockupIndex]?.description}</p>
+            <p className="mt-1">Screen {currentMockupIndex + 1} of {generatedMockups.length} generated screens</p>
+          </div>
+        ) : mockupUrl ? (
+          <p>Interactive website mockup preview</p>
+        ) : (
+          <p>Default mockup template - actual design will be generated based on your requirements</p>
+        )}
       </div>
     </div>
   );

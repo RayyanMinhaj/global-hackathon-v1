@@ -12,6 +12,7 @@ from agents.sequence_agent import generate_sequence_sync
 from agents.palette_diagram import generate_palette_sync
 from agents.microservice_agent import generate_microservices_sync
 from agents.srs_report_agent import generate_srs_sync
+from agents.mockups_agent import generate_mockups_sync
 
 logger = logging.getLogger(__name__)
 
@@ -364,8 +365,45 @@ def create_app(config_name=None):
             })
         except Exception as e:
             logger.error(f"Error in generate_srs endpoint: {str(e)}")
+            return
+    
+    # endpoint for generating screen mockups
+    @app.route('/api/generate_mockups', methods=['POST'])
+    def generate_mockups():
+        """Endpoint to generate screen mockups for applications"""
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({
+                    'message': 'No data provided',
+                    'status': 'error'
+                }), 400
+
+            description = data.get('description', '')
+            design_preferences = data.get('design_preferences', '')
+            screens = data.get('screens', '')
+
+            if not description:
+                return jsonify({
+                    'message': 'Description is required',
+                    'status': 'error'
+                }), 400
+
+            logger.info(f"Generating mockups for description length {len(description)}")
+            result = generate_mockups_sync(description, design_preferences, screens)
+            
+            # Debug log the result
+            logger.info(f"Mockups generation result: {result}")
+
             return jsonify({
-                'error': str(e),
+                'mockups_data': result.get('mockups_data'),
+                'design_summary': result.get('design_summary'),
+                'status': 'success'
+            })
+        except Exception as e:
+            logger.error(f"Error in generate_mockups endpoint: {str(e)}")
+            return jsonify({
+                'message': f'Error generating mockups: {str(e)}',
                 'status': 'error'
             }), 500
     

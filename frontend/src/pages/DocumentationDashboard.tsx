@@ -11,7 +11,13 @@ const DocumentationDashboard: React.FC = () => {
   const [sections, setSections] = useState<Array<{ name: string; content: string; status: 'loading' | 'done' | 'error' }>>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('srs');
-  const [screenMockups, setScreenMockups] = useState<Array<{ name: string; mockupUrl?: string; status: 'loading' | 'done' | 'error' }>>([]);
+  const [screenMockups, setScreenMockups] = useState<Array<{ 
+    name: string; 
+    mockupUrl?: string; 
+    status: 'loading' | 'done' | 'error';
+    description?: string;
+    htmlContent?: string;
+  }>>([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownloadPDF = async () => {    
@@ -142,37 +148,78 @@ const DocumentationDashboard: React.FC = () => {
         await callAgent('Palette', '/api/generate_palette', { description: source }, (d) => d?.palette_diagram || d?.palette || '');
         await callAgent('Microservices', '/api/generate_microservices', { requirements: source, scale: 'medium', consistency: 'eventual' }, (d) => d?.architecture_diagram || d?.architecture || '');
 
-        // Generate screen mockups - Start immediately
+        // Generate screen mockups - Use actual API
         console.log('Starting screen mockup generation...');
         
         // Initialize screen mockups with loading state
-        setScreenMockups([
-          { name: 'Home Page', mockupUrl: undefined, status: 'loading' },
-          { name: 'Dashboard', mockupUrl: undefined, status: 'loading' },
-          { name: 'User Profile', mockupUrl: undefined, status: 'loading' }
-        ]);
+        const mockupScreens = [
+          { name: 'Home Page', description: 'Landing page with hero section and main features' },
+          { name: 'Dashboard', description: 'User dashboard with metrics, charts, and quick actions' },
+          { name: 'User Profile', description: 'User profile page with settings and personal information' }
+        ];
+        
+        setScreenMockups(mockupScreens.map(screen => ({ 
+          name: screen.name, 
+          mockupUrl: undefined, 
+          status: 'loading' as const,
+          description: screen.description
+        })));
 
-        // Simulate mockup generation with delays
-        setTimeout(() => {
-          console.log('Updating Home Page mockup...');
-          setScreenMockups(prev => prev.map(s => 
-            s.name === 'Home Page' ? { ...s, status: 'done' as const } : s
-          ));
-        }, 2000);
-        
-        setTimeout(() => {
-          console.log('Updating Dashboard mockup...');
-          setScreenMockups(prev => prev.map(s => 
-            s.name === 'Dashboard' ? { ...s, status: 'done' as const } : s
-          ));
-        }, 3000);
-        
-        setTimeout(() => {
-          console.log('Updating User Profile mockup...');
-          setScreenMockups(prev => prev.map(s => 
-            s.name === 'User Profile' ? { ...s, status: 'done' as const } : s
-          ));
-        }, 4000);
+        // Generate mockups using the actual API
+        try {
+          const response = await fetch(`${config.backendUrl}/api/generate_mockups`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              description: source,
+              design_preferences: 'Modern, professional, clean design with good UX',
+              screens: mockupScreens.map(s => s.name).join(', ')
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Mockups API response:', data);
+            
+            if (data.status === 'success' && data.mockups_data) {
+              let mockupsData: any;
+              try {
+                mockupsData = typeof data.mockups_data === 'string' 
+                  ? JSON.parse(data.mockups_data) 
+                  : data.mockups_data;
+                
+                // Update screen mockups with generated data
+                if (mockupsData.mockups && Array.isArray(mockupsData.mockups)) {
+                  const generatedMockups = mockupsData.mockups.map((mockup: any, index: number) => ({
+                    name: mockup.screen_name || `Screen ${index + 1}`,
+                    mockupUrl: undefined, // We'll use the HTML content directly
+                    status: 'done' as const,
+                    description: mockup.description,
+                    htmlContent: mockup.html_content
+                  }));
+                  setScreenMockups(generatedMockups);
+                } else {
+                  console.error('Invalid mockups data structure:', mockupsData);
+                  setScreenMockups(prev => prev.map(s => ({ ...s, status: 'error' as const })));
+                }
+              } catch (parseError) {
+                console.error('Error parsing mockups data:', parseError);
+                setScreenMockups(prev => prev.map(s => ({ ...s, status: 'error' as const })));
+              }
+            } else {
+              console.error('Mockups generation failed:', data.message);
+              setScreenMockups(prev => prev.map(s => ({ ...s, status: 'error' as const })));
+            }
+          } else {
+            console.error('Mockups API request failed:', response.status);
+            setScreenMockups(prev => prev.map(s => ({ ...s, status: 'error' as const })));
+          }
+        } catch (mockupError) {
+          console.error('Error generating mockups:', mockupError);
+          setScreenMockups(prev => prev.map(s => ({ ...s, status: 'error' as const })));
+        }
 
       } catch (e: any) {
         setSections([{ name: 'SRS', content: `Error generating document: ${e?.message || e}`, status: 'error' }]);
@@ -422,10 +469,35 @@ const DocumentationDashboard: React.FC = () => {
                                   <div className="w-8 h-8 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin mb-4"></div>
                                   <p className="text-gray-500">Generating mockup...</p>
                                 </div>
+                              ) : screen.status === 'error' ? (
+                                <div className="bg-red-50/50 backdrop-blur-sm rounded-lg p-6 border border-red-200/50">
+                                  {/* <h4 className="text-red-700 font-medium mb-4">A little problems generating this diagram. Move your ass and do it yourself.</h4> */}
+                                  <MarkdownMermaidViewer
+                                    content={`\`\`\`mermaid
+graph LR
+    User[User UI] --> Web[Web Frontend]
+    Web --> API[API Server]
+    API --> Auth[Auth Service]
+    API --> DB[(Primary DB)]
+    API --> External[Third-Party API]
+\`\`\``}
+                                    colorTheme={{
+                                      primary: '#7C3AED',
+                                      secondary: '#DB2777',
+                                      accent: '#EA580C',
+                                      background: 'rgba(255, 255, 255, 0.05)',
+                                      text: '#1F2937',
+                                      border: 'rgba(255, 255, 255, 0.3)',
+                                      code: 'rgba(255, 255, 255, 0.2)'
+                                    }}
+                                    className="w-full"
+                                  />
+                                </div>
                               ) : (
                                 <ScreenMockupDisplay
                                   mockupUrl={screen.mockupUrl}
                                   title={`${screen.name} Mockup`}
+                                  htmlContent={screen.htmlContent}
                                   colorTheme={{
                                     primary: '#7C3AED',
                                     secondary: '#DB2777',
