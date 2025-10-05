@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function LandingPage() {
+export defau              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 border border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105">
+                <span className="text-pink-500 text-2xl"></span>unction LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-purple-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-purple-600 text-2xl">🎯</span>
+                <span className="text-purple-600 text-2xl"></span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Cut the Fluff</h3>
               <p className="text-gray-700">
@@ -99,7 +100,7 @@ export default function LandingPage() {
             
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-pink-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-pink-500 text-2xl">👥</span>
+                <span className="text-pink-500 text-2xl"></span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Save the Dollars</h3>
               <p className="text-gray-700">
@@ -109,7 +110,7 @@ export default function LandingPage() {
             
             <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-lg border border-white/30 hover:bg-white/30 hover:shadow-xl transition-all duration-300">
               <div className="w-12 h-12 bg-orange-100/50 backdrop-blur-lg rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                <span className="text-orange-500 text-2xl">📊</span>
+                <span className="text-orange-500 text-2xl"></span>
               </div>
               <h3 className="text-xl font-semibold mb-4 text-gray-800">Get Sh*t Done.</h3>
               <p className="text-gray-700">

@@ -202,7 +202,6 @@ const DocumentationDashboard: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <span>🚀</span>
                     Generate Documentation
                   </>
                 )}
@@ -216,7 +215,6 @@ const DocumentationDashboard: React.FC = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/20">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">📋</span>
                     <h2 className="text-2xl font-semibold text-gray-800">Preview</h2>
                   </div>
                   
@@ -227,9 +225,9 @@ const DocumentationDashboard: React.FC = () => {
                       onChange={(e) => setCurrentView(e.target.value as ViewType)}
                       className="px-4 py-2 rounded-lg border-2 border-white/40 bg-white/30 backdrop-blur-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400/50 transition-all duration-300"
                     >
-                      <option value="srs">📄 SRS Document</option>
-                      <option value="diagrams">📊 Diagrams</option>
-                      <option value="screens">🖥️ Screen Mockups</option>
+                      <option value="srs">SRS Document</option>
+                      <option value="diagrams">Diagrams</option>
+                      <option value="screens">Screen Mockups</option>
                     </select>
                   </div>
                 </div>

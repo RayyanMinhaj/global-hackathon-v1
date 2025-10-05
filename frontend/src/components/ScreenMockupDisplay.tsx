@@ -97,7 +97,7 @@ const ScreenMockupDisplay = ({
             <div class="container">
                 <header class="header">
                     <nav class="nav">
-                        <div class="logo">🏠 YourApp Home</div>
+                        <div class="logo">YourApp Home</div>
                         <ul class="nav-links">
                             <li><a href="#home">Home</a></li>
                             <li><a href="#features">Features</a></li>
@@ -117,15 +117,15 @@ const ScreenMockupDisplay = ({
                     
                     <section class="features">
                         <div class="card">
-                            <h3>🚀 Lightning Fast</h3>
+                            <h3>Lightning Fast</h3>
                             <p>Experience blazing-fast performance with our optimized infrastructure and cutting-edge technology stack.</p>
                         </div>
                         <div class="card">
-                            <h3>🎨 Beautiful Design</h3>
+                            <h3>Beautiful Design</h3>
                             <p>Stunning user interface designed with modern principles and user experience best practices.</p>
                         </div>
                         <div class="card">
-                            <h3>🔒 Enterprise Security</h3>
+                            <h3>Enterprise Security</h3>
                             <p>Bank-level security to protect your data with end-to-end encryption and compliance standards.</p>
                         </div>
                     </section>
@@ -165,13 +165,13 @@ const ScreenMockupDisplay = ({
         </head>
         <body>
             <div class="sidebar">
-                <div class="logo" style="margin-bottom: 30px;">📊 Dashboard</div>
-                <div class="sidebar-item active">🏠 Overview</div>
-                <div class="sidebar-item">📈 Analytics</div>
-                <div class="sidebar-item">👥 Users</div>
-                <div class="sidebar-item">💰 Revenue</div>
-                <div class="sidebar-item">⚙️ Settings</div>
-                <div class="sidebar-item">📞 Support</div>
+                <div class="logo" style="margin-bottom: 30px;">Dashboard</div>
+                <div class="sidebar-item active">Overview</div>
+                <div class="sidebar-item">Analytics</div>
+                <div class="sidebar-item">Users</div>
+                <div class="sidebar-item">Revenue</div>
+                <div class="sidebar-item">Settings</div>
+                <div class="sidebar-item">Support</div>
             </div>
             
             <div class="main-content">
@@ -198,7 +198,7 @@ const ScreenMockupDisplay = ({
                 
                 <div class="grid">
                     <div class="chart-container">
-                        <h3 style="margin-bottom: 20px;">📈 Revenue Trends</h3>
+                        <h3 style="margin-bottom: 20px;">Revenue Trends</h3>
                         <div style="height: 200px; background: linear-gradient(45deg, #7C3AED20, #DB277720); border-radius: 8px; display: flex; align-items: end; justify-content: space-around; padding: 20px;">
                             <div style="width: 40px; height: 60%; background: #7C3AED; border-radius: 4px;"></div>
                             <div style="width: 40px; height: 80%; background: #DB2777; border-radius: 4px;"></div>
@@ -208,7 +208,7 @@ const ScreenMockupDisplay = ({
                         </div>
                     </div>
                     <div class="chart-container">
-                        <h3 style="margin-bottom: 20px;">👥 User Activity</h3>
+                        <h3 style="margin-bottom: 20px;">User Activity</h3>
                         <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; height: 200px;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                                 <span>Active Users</span>
@@ -293,7 +293,7 @@ const ScreenMockupDisplay = ({
             <div class="container">
                 <header class="header">
                     <nav class="nav">
-                        <div class="logo">👤 User Profile</div>
+                        <div class="logo">User Profile</div>
                         <ul class="nav-links">
                             <li><a href="#dashboard">Dashboard</a></li>
                             <li><a href="#settings">Settings</a></li>
@@ -304,7 +304,7 @@ const ScreenMockupDisplay = ({
                 </header>
                 
                 <div class="profile-header">
-                    <div class="avatar">👤</div>
+                    <div class="avatar">U</div>
                     <h1 style="color: white; margin-bottom: 10px;">John Doe</h1>
                     <p style="color: rgba(255,255,255,0.8);">Software Developer • Premium Member</p>
                     <button class="btn" style="margin-top: 20px;">Edit Profile</button>
@@ -428,15 +428,15 @@ const ScreenMockupDisplay = ({
                   
                   <div class="grid">
                       <div class="card">
-                          <h3>🚀 Fast Performance</h3>
+                          <h3>Fast Performance</h3>
                           <p>Lightning-fast load times and smooth user experience.</p>
                       </div>
                       <div class="card">
-                          <h3>🎨 Beautiful Design</h3>
+                          <h3>Beautiful Design</h3>
                           <p>Modern, clean interface that users love.</p>
                       </div>
                       <div class="card">
-                          <h3>🔒 Secure</h3>
+                          <h3>Secure</h3>
                           <p>Enterprise-grade security to keep your data safe.</p>
                       </div>
                   </div>
@@ -456,7 +456,7 @@ const ScreenMockupDisplay = ({
           className="text-lg font-semibold flex items-center gap-2"
           style={{ color: colorTheme.text }}
         >
-          <span className="text-xl">🖥️</span>
+          <span className="text-xl"></span>
           {title}
         </h3>
       </div>
