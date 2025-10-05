@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-
-// Mock MarkdownMermaidViewer component
-const MarkdownMermaidViewer = ({ content, colorTheme, className }: any) => (
-  <div className={className} style={{ color: colorTheme.text }}>
-    <pre className="whitespace-pre-wrap text-sm">{content}</pre>
-  </div>
-);
+import MarkdownMermaidViewer from '../components/MarkdownMermaidViewer';
 
 const DocumentationDashboard: React.FC = () => {
   const [inputText, setInputText] = useState('');
@@ -93,7 +87,7 @@ const DocumentationDashboard: React.FC = () => {
       }
     })();
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative">
       {/* Frosted Glass Background Elements */}
